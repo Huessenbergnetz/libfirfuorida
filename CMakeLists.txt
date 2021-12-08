@@ -62,8 +62,8 @@ configure_file(${CMAKE_MODULE_PATH}/Firfuorida-config-version.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/FirfuoridaQt${QT_VERSION_MAJOR}ConfigVersion.cmake
     @ONLY
 )
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/FirfuoridaConfig.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/FirfuoridaConfigVersion.cmake
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/FirfuoridaQt${QT_VERSION_MAJOR}Config.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/FirfuoridaQt${QT_VERSION_MAJOR}ConfigVersion.cmake
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/FirfuoridaQt${QT_VERSION_MAJOR}/
 )
 install(EXPORT FirfuoridaTargets
