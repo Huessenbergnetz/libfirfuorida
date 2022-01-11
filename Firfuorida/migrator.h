@@ -14,6 +14,14 @@ namespace Firfuorida {
 
 class MigratorPrivate;
 
+/*!
+ * \brief Manages multiple migrations.
+ *
+ * The %Migrator class manages multiple Migration objects that are children of the
+ * %Migrator class.
+ *
+ * \headerfile "" <Firfuorida/Migrator>
+ */
 class FIRFUORIDA_LIBRARY Migrator : public QObject
 {
     Q_OBJECT

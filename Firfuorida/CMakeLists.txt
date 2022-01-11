@@ -11,7 +11,9 @@ set(firfuorida_SRC
 set(firfuorida_HEADERS
     firfuorida_global.h
     migrator.h
+    Migrator
     migration.h
+    Migration
     table.h
     column.h
 )
@@ -31,23 +33,12 @@ add_library(FirfuoridaQt${QT_VERSION_MAJOR} SHARED
 
 add_library(FirfuoridaQt${QT_VERSION_MAJOR}::Core ALIAS FirfuoridaQt${QT_VERSION_MAJOR})
 
-target_compile_features(FirfuoridaQt${QT_VERSION_MAJOR}
-    PRIVATE
-        cxx_auto_type
-        cxx_lambdas
-        cxx_nonstatic_member_init
-        cxx_range_for
-        cxx_long_long_type
-        cxx_right_angle_brackets
-    PUBLIC
-        cxx_override
-        cxx_nullptr
-)
+target_compile_features(FirfuoridaQt${QT_VERSION_MAJOR} PUBLIC cxx_std_14)
 
 target_include_directories(FirfuoridaQt${QT_VERSION_MAJOR}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-        $<INSTALL_INTERFACE:include/Firfuorida>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/firfuorida-qt${QT_VERSION_MAJOR}>
 )
 
 target_compile_definitions(FirfuoridaQt${QT_VERSION_MAJOR}
@@ -69,6 +60,7 @@ set_target_properties(FirfuoridaQt${QT_VERSION_MAJOR} PROPERTIES
     EXPORT_NAME Firfuorida
     VERSION ${PROJECT_VERSION}
     SOVERSION ${FIRFUORIDA_API_LEVEL}
+    PUBLIC_HEADER "${firfuorida_HEADERS}"
 )
 
 if (ENABLE_ASAN)
@@ -97,11 +89,11 @@ target_link_libraries(FirfuoridaQt${QT_VERSION_MAJOR}
         Qt${QT_VERSION_MAJOR}::Sql
 )
 
-set_property(TARGET FirfuoridaQt${QT_VERSION_MAJOR} PROPERTY PUBLIC_HEADER ${firfuorida_HEADERS})
-
 install(TARGETS FirfuoridaQt${QT_VERSION_MAJOR}
-    EXPORT FirfuoridaTargets DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION include/Firfuorida COMPONENT devel
-    RUNTIME DESTINATION bin COMPONENT runtime
-    ARCHIVE DESTINATION lib COMPONENT devel
+    EXPORT FirfuoridaTargets
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT runtime
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT runtime
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/firfuorida-qt${QT_VERSION_MAJOR}/Firfuorida COMPONENT development
 )
