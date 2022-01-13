@@ -11,6 +11,14 @@
 
 using namespace Firfuorida;
 
+Migrator::Migrator(QObject *parent) :
+    QObject(parent), dptr(new MigratorPrivate)
+{
+    Q_D(Migrator);
+    d->connectionName = QLatin1String(QSqlDatabase::defaultConnection);
+    d->migrationsTable = QStringLiteral("migrations");
+}
+
 Migrator::Migrator(const QString &connectionName, const QString &migrationsTable, QObject *parent) : QObject(parent), dptr(new MigratorPrivate)
 {
     Q_D(Migrator);
@@ -21,6 +29,18 @@ Migrator::Migrator(const QString &connectionName, const QString &migrationsTable
 Migrator::~Migrator()
 {
 
+}
+
+QString Migrator::connectionName() const
+{
+    Q_D(const Migrator);
+    return d->connectionName;
+}
+
+QString Migrator::migrationsTable() const
+{
+    Q_D(const Migrator);
+    return d->migrationsTable;
 }
 
 bool Migrator::migrate()

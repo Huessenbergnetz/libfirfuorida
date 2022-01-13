@@ -15,6 +15,7 @@ set(firfuorida_HEADERS
     migration.h
     Migration
     table.h
+    Table
     column.h
 )
 
