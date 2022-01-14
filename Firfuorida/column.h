@@ -15,6 +15,13 @@ namespace Firfuorida {
 
 class ColumnPrivate;
 
+/*!
+ * \brief Contains information about a single column, either to creaste or to modify.
+ *
+ * The %Column object can only be created by functions of the Table class.
+ *
+ * \headerfile "" <Firfuorida/Column>
+ */
 class FIRFUORIDA_LIBRARY Column : public QObject
 {
     Q_OBJECT
@@ -25,6 +32,9 @@ class FIRFUORIDA_LIBRARY Column : public QObject
     Q_DECLARE_PRIVATE_D(dptr, Column)
     explicit Column(QObject *parent);
 public:
+    /*!
+     * \brief Deconstructs the %Column object.
+     */
     ~Column() override;
 
     Column* autoIncrement();

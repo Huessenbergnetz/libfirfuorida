@@ -48,9 +48,9 @@ public:
     explicit Migrator(QObject *parent = nullptr);
     /*!
      * \brief Constructs a new %Migrator object with the given parameters.
-     * \param QString   connectionName  The name of the SQL connection to use.
-     * \param QString   migrationsTable The name of the table to store the migrations in.
-     * \param QObject   parent          Pointer to a parent object.
+     * \param connectionName  The name of the SQL connection to use.
+     * \param migrationsTable The name of the table to store the migrations in.
+     * \param parent          Pointer to a parent object.
      */
     explicit Migrator(const QString &connectionName, const QString &migrationsTable, QObject *parent = nullptr);
     /*!
