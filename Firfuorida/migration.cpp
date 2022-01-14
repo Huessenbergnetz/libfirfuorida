@@ -9,6 +9,7 @@
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QSqlError>
+#include "logging.h"
 
 using namespace Firfuorida;
 
@@ -16,7 +17,7 @@ bool MigrationPrivate::migrate(const QString &connectionName)
 {
     QSqlDatabase db = QSqlDatabase::database(connectionName);
     if (!db.isOpen()) {
-        qCritical("Failed to get database connection \"%s\": %s", qUtf8Printable(connectionName), qUtf8Printable(db.lastError().text()));
+        qCCritical(FIR_CORE, "Failed to get database connection \"%s\": %s", qUtf8Printable(connectionName), qUtf8Printable(db.lastError().text()));
         return false;
     }
 
@@ -25,7 +26,7 @@ bool MigrationPrivate::migrate(const QString &connectionName)
 
     const QList<Table *> tables = q->findChildren<Table *>(QString(), Qt::FindDirectChildrenOnly);
     if (tables.empty()) {
-        qWarning("Nothing to do for this migration.");
+        qCWarning(FIR_CORE, "Nothing to do for this migration.");
         return true;
     }
 
@@ -33,13 +34,13 @@ bool MigrationPrivate::migrate(const QString &connectionName)
     for (Table *t : tables) {
         if (t->d_func()->operation == TablePrivate::ExecuteUpFunction) {
             if (!q->executeUp()) {
-                qCritical("Failed to execute custom up function.");
+                qCCritical(FIR_CORE, "Failed to execute custom up function.");
                 return false;
             }
         } else {
             if (!query.exec(t->d_func()->queryString())) {
-                qCritical("Failed to execute statement: %s", qUtf8Printable(query.lastError().text()));
-                qCritical("Failed query: %s", qUtf8Printable(query.lastQuery()));
+                qCCritical(FIR_CORE, "Failed to execute statement: %s", qUtf8Printable(query.lastError().text()));
+                qCCritical(FIR_CORE, "Failed query: %s", qUtf8Printable(query.lastQuery()));
                 return false;
             }
         }
@@ -54,7 +55,7 @@ bool MigrationPrivate::rollback(const QString &connectionName)
 {
     QSqlDatabase db = QSqlDatabase::database(connectionName);
     if (!db.isOpen()) {
-        qCritical("Failed to get database connection \"%s\": %s", qUtf8Printable(connectionName), qUtf8Printable(db.lastError().text()));
+        qCCritical(FIR_CORE, "Failed to get database connection \"%s\": %s", qUtf8Printable(connectionName), qUtf8Printable(db.lastError().text()));
         return false;
     }
 
@@ -63,7 +64,7 @@ bool MigrationPrivate::rollback(const QString &connectionName)
 
     const QList<Table *> tables = q->findChildren<Table *>(QString(), Qt::FindDirectChildrenOnly);
     if (tables.empty()) {
-        qWarning("Nothing to do for this migration.");
+        qCWarning(FIR_CORE, "Nothing to do for this migration.");
         return true;
     }
 
@@ -71,13 +72,13 @@ bool MigrationPrivate::rollback(const QString &connectionName)
     for (Table *t : tables) {
         if (t->d_func()->operation == TablePrivate::ExecuteDownFunction) {
             if (!q->executeDown()) {
-                qCritical("Failed to execute custom down function.");
+                qCCritical(FIR_CORE, "Failed to execute custom down function.");
                 return false;
             }
         } else {
             if (!query.exec(t->d_func()->queryString())) {
-                qCritical("Failed to execute statement: %s", qUtf8Printable(query.lastError().text()));
-                qCritical("Failed query: %s", qUtf8Printable(query.lastQuery()));
+                qCCritical(FIR_CORE, "Failed to execute statement: %s", qUtf8Printable(query.lastError().text()));
+                qCCritical(FIR_CORE, "Failed query: %s", qUtf8Printable(query.lastQuery()));
                 return false;
             }
         }

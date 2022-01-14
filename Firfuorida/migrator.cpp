@@ -8,6 +8,9 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <limits>
+#include "logging.h"
+
+Q_LOGGING_CATEGORY(FIR_CORE, "libfirfuorida.core")
 
 using namespace Firfuorida;
 
@@ -30,7 +33,7 @@ void MigratorPrivate::setDbType()
     } else if (db.driverName() == QLatin1String("QSQLITE")) {
         dbType = Migrator::SQLite;
     } else {
-        qWarning("Invalid/not supported database driver \"%s\" set.", qUtf8Printable(db.driverName()));
+        qCWarning(FIR_CORE, "Invalid/not supported database driver \"%s\" set.", qUtf8Printable(db.driverName()));
     }
 }
 
@@ -74,13 +77,13 @@ void MigratorPrivate::setDbVersion()
                         }
                     }
                 } else {
-                    qWarning("Can not find valid database version information in \"%s\".", qUtf8Printable(version));
+                    qCWarning(FIR_CORE, "Can not find valid database version information in \"%s\".", qUtf8Printable(version));
                 }
             } else {
-                qCritical("%s", "Can not find database version information.");
+                qCCritical(FIR_CORE, "%s", "Can not find database version information.");
             }
         } else {
-            qCritical("Failed to execute query to determine MySQL/MariaDB database version: %s", qUtf8Printable(q.lastError().text()));
+            qCCritical(FIR_CORE, "Failed to execute query to determine MySQL/MariaDB database version: %s", qUtf8Printable(q.lastError().text()));
         }
     }
 }
@@ -121,7 +124,7 @@ bool Migrator::migrate()
 {
     const QList<Migration *> migrations = findChildren<Migration *>(QString(), Qt::FindDirectChildrenOnly);
     if (migrations.empty()) {
-        qWarning("No migrations added to this migrator.");
+        qCWarning(FIR_CORE, "No migrations added to this migrator.");
         return true;
     }
 
@@ -129,14 +132,14 @@ bool Migrator::migrate()
 
     d->db = QSqlDatabase::database(d->connectionName);
     if (!d->db.isOpen()) {
-        qCritical("Can not open database connection \"%s\": %s", qUtf8Printable(d->connectionName), qUtf8Printable(d->db.lastError().text()));
+        qCCritical(FIR_CORE, "Can not open database connection \"%s\": %s", qUtf8Printable(d->connectionName), qUtf8Printable(d->db.lastError().text()));
         return false;
     }
 
     d->setDbType();
     d->setDbVersion();
 
-    qInfo("Start database migrations on %s database version %s", qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion.toString()));
+    qCInfo(FIR_CORE, "Start database migrations on %s database version %s", qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion.toString()));
 
     QSqlQuery query(d->db);
     if (!query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS %1 ("
@@ -144,7 +147,7 @@ bool Migrator::migrate()
                                    "applied DATETIME DEFAULT CURRENT_TIMESTAMP, "
                                    "UNIQUE KEY migration (migration)"
                                    ") DEFAULT CHARSET = latin1").arg(d->migrationsTable))) {
-        qCritical("Can not create migrations table \"%s\": %s", qUtf8Printable(d->migrationsTable), qUtf8Printable(query.lastError().text()));
+        qCCritical(FIR_CORE, "Can not create migrations table \"%s\": %s", qUtf8Printable(d->migrationsTable), qUtf8Printable(query.lastError().text()));
         return false;
     }
 
@@ -154,21 +157,21 @@ bool Migrator::migrate()
             appliedMigrations << query.value(0).toString();
         }
     } else {
-        qCritical("Failed to query already applied migrations from the database: %s", qUtf8Printable(query.lastError().text()));
+        qCCritical(FIR_CORE, "Failed to query already applied migrations from the database: %s", qUtf8Printable(query.lastError().text()));
         return false;
     }
 
     for (Migration *migration : migrations) {
         const QString className = QString::fromLatin1(migration->metaObject()->className());
         if (!appliedMigrations.contains(className)) {
-            qInfo("Applying migration %s", migration->metaObject()->className());
+            qCInfo(FIR_CORE, "Applying migration %s", migration->metaObject()->className());
             if (migration->d_func()->migrate(d->connectionName)) {
                 if (!query.exec(QStringLiteral("INSERT INTO %1 (migration) VALUES ('%2')").arg(d->migrationsTable, className))) {
-                    qCritical("Failed to insert applied migration \"%s\" into migration table \"%s\".", migration->metaObject()->className(), qUtf8Printable(d->migrationsTable));
+                    qCCritical(FIR_CORE, "Failed to insert applied migration \"%s\" into migration table \"%s\".", migration->metaObject()->className(), qUtf8Printable(d->migrationsTable));
                     return false;
                 }
             } else {
-                qCritical("Failed to apply migration \"%s\".", migration->metaObject()->className());
+                qCCritical(FIR_CORE, "Failed to apply migration \"%s\".", migration->metaObject()->className());
                 return false;
             }
         }
@@ -181,7 +184,7 @@ bool Migrator::rollback(uint steps)
 {
     const QList<Migration *> migrations = findChildren<Migration *>(QString(), Qt::FindDirectChildrenOnly);
     if (migrations.empty()) {
-        qWarning("No migrations added to this migrator.");
+        qCWarning(FIR_CORE, "No migrations added to this migrator.");
         return true;
     }
 
@@ -189,14 +192,14 @@ bool Migrator::rollback(uint steps)
 
     QSqlDatabase db = QSqlDatabase::database(d->connectionName);
     if (!db.isOpen()) {
-        qCritical("Can not open database connection \"%s\": %s", qUtf8Printable(d->connectionName), qUtf8Printable(db.lastError().text()));
+        qCCritical(FIR_CORE, "Can not open database connection \"%s\": %s", qUtf8Printable(d->connectionName), qUtf8Printable(db.lastError().text()));
         return false;
     }
 
     d->setDbType();
     d->setDbVersion();
 
-    qInfo("Start rolling back database migrations on %s database version %s", qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion.toString()));
+    qCInfo(FIR_CORE, "Start rolling back database migrations on %s database version %s", qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion.toString()));
 
     QStringList appliedMigrations;
     QSqlQuery query(db);
@@ -212,12 +215,12 @@ bool Migrator::rollback(uint steps)
             appliedMigrations << query.value(0).toString();
         }
     } else {
-        qCritical("Failed to query already applied migrations from the database: %s", qUtf8Printable(query.lastError().text()));
+        qCCritical(FIR_CORE, "Failed to query already applied migrations from the database: %s", qUtf8Printable(query.lastError().text()));
         return false;
     }
 
     if (appliedMigrations.empty()) {
-        qInfo("%s", "No migrations applied.");
+        qCInfo(FIR_CORE, "%s", "No migrations applied.");
         return true;
     }
 
@@ -226,14 +229,14 @@ bool Migrator::rollback(uint steps)
         Migration *m = *i;
         const QString migrationName = QString::fromLatin1(m->metaObject()->className());
         if (appliedMigrations.contains(migrationName)) {
-            qInfo("Rolling back migration %s", m->metaObject()->className());
+            qCInfo(FIR_CORE, "Rolling back migration %s", m->metaObject()->className());
             if (m->d_func()->rollback(d->connectionName)) {
                 if (!query.exec(QStringLiteral("DELETE FROM %1 WHERE migration = '%2'").arg(d->migrationsTable, migrationName))) {
-                    qCritical("Failed to remove applied migration \"%s\" from the migration table \"%s\".", m->metaObject()->className(), qUtf8Printable(d->migrationsTable));
+                    qCCritical(FIR_CORE, "Failed to remove applied migration \"%s\" from the migration table \"%s\".", m->metaObject()->className(), qUtf8Printable(d->migrationsTable));
                     return false;
                 }
             } else {
-                qCritical("Failed to rolling back migration \"%s\".", m->metaObject()->className());
+                qCCritical(FIR_CORE, "Failed to rolling back migration \"%s\".", m->metaObject()->className());
                 return false;
             }
         }

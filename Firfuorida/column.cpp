@@ -9,6 +9,7 @@
 #include <QTime>
 #include <QDateTime>
 #include <QBitArray>
+#include "logging.h"
 
 using namespace Firfuorida;
 
@@ -298,16 +299,16 @@ QString ColumnPrivate::queryString() const
 #ifndef QT_NO_DEBUG_OUTPUT
     switch (operation) {
     case CreateColumn:
-        qDebug("Creating column: %s", qUtf8Printable(qs));
+        qCDebug(FIR_CORE, "Creating column: %s", qUtf8Printable(qs));
         break;
     case AddColumn:
-        qDebug("Adding column: %s", qUtf8Printable(qs));
+        qCDebug(FIR_CORE, "Adding column: %s", qUtf8Printable(qs));
         break;
     case ModifyColumn:
-        qDebug("Modifying column: %s", qUtf8Printable(qs));
+        qCDebug(FIR_CORE, "Modifying column: %s", qUtf8Printable(qs));
         break;
     case DropColumn:
-        qDebug("Dropping column: %s", qUtf8Printable(qs));
+        qCDebug(FIR_CORE, "Dropping column: %s", qUtf8Printable(qs));
         break;
     }
 #endif
@@ -332,7 +333,7 @@ Column* Column::autoIncrement(bool autoIncrement)
     if (d->type < ColumnPrivate::Decimal || (d->type > ColumnPrivate::Numeric && d->type < ColumnPrivate::Bit)) {
         d->_autoIncrement = autoIncrement;
     } else {
-        qWarning("autoIncrement() / AUTO_INCREMENT attribute is only usable on integer and flotaing-point data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
+        qCWarning(FIR_CORE, "autoIncrement() / AUTO_INCREMENT attribute is only usable on integer and flotaing-point data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
     }
     return this;
 }
@@ -343,7 +344,7 @@ Column* Column::unSigned(bool unSigned)
     if (d->type < ColumnPrivate::Bit) {
         d->_unsigned = unSigned;
     } else {
-        qWarning("unSigned() / UNSIGNED attribute is only usable on numeric data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
+        qCWarning(FIR_CORE, "unSigned() / UNSIGNED attribute is only usable on numeric data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
     }
     return this;
 }
@@ -354,7 +355,7 @@ Column* Column::charset(const QString &charset)
     if (d->type >= ColumnPrivate::Char && d->type <= ColumnPrivate::Set) {
         d->charset = charset;
     } else {
-        qWarning("charset() / CHARACTER SET attribute is only usable on character data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
+        qCWarning(FIR_CORE, "charset() / CHARACTER SET attribute is only usable on character data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
     }
     return this;
 }
@@ -365,7 +366,7 @@ Column* Column::collation(const QString &collation)
     if (d->type >= ColumnPrivate::Char && d->type <= ColumnPrivate::Set) {
         d->collation = collation;
     } else {
-        qWarning("collation() / COLLATE attribute is only usable on character data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
+        qCWarning(FIR_CORE, "collation() / COLLATE attribute is only usable on character data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
     }
     return this;
 }
@@ -376,7 +377,7 @@ Column* Column::defaultValue(const QVariant &defVal)
     if (d->type < ColumnPrivate::Key) {
         d->defVal = defVal;
     } else {
-        qWarning("defaultValue() / DEFAULT attribute is only usable on data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
+        qCWarning(FIR_CORE, "defaultValue() / DEFAULT attribute is only usable on data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
     }
     return this;
 }
@@ -387,7 +388,7 @@ Column *Column::nullable(bool isNullable)
     if (d->type < ColumnPrivate::Key) {
         d->_nullable = isNullable;
     } else {
-        qWarning("nullable() / NOT NULL attribute is only usable on data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
+        qCWarning(FIR_CORE, "nullable() / NOT NULL attribute is only usable on data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
     }
     return this;
 }
@@ -405,7 +406,7 @@ Column *Column::primary(bool primary)
     if (d->type < ColumnPrivate::Key) {
         d->_primaryKey = primary;
     } else {
-        qWarning("primary() / PRIMARY KEY attribute is only usable on data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
+        qCWarning(FIR_CORE, "primary() / PRIMARY KEY attribute is only usable on data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
     }
     return this;
 }
@@ -416,7 +417,7 @@ Column *Column::unique(bool unique)
     if (d->type < ColumnPrivate::Key) {
         d->_unique = unique;
     } else {
-        qWarning("unique() / UNIQUE attribute is only usable on data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
+        qCWarning(FIR_CORE, "unique() / UNIQUE attribute is only usable on data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
     }
     return this;
 }
@@ -427,7 +428,7 @@ Column *Column::onDelete(const QString &referenceOption)
     if (d->type == ColumnPrivate::ForeignKey) {
         d->onDelete = referenceOption;
     } else {
-        qWarning("onDelete() / ON DELETE reference option is only usable on FOREIGN KEY constraints. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
+        qCWarning(FIR_CORE, "onDelete() / ON DELETE reference option is only usable on FOREIGN KEY constraints. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
     }
     return this;
 }
@@ -438,7 +439,7 @@ Column *Column::onUpdate(const QString &referenceOption)
     if (d->type == ColumnPrivate::ForeignKey) {
         d->onUpdate = referenceOption;
     } else {
-        qWarning("onUpdate() / ON UPDATE reference option is only usable on FOREIGN KEY constraints. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
+        qCWarning(FIR_CORE, "onUpdate() / ON UPDATE reference option is only usable on FOREIGN KEY constraints. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
     }
     return this;
 }
@@ -449,7 +450,7 @@ Column *Column::comment(const QString &comment)
     QString _comment = comment;
     _comment.replace(QLatin1Char('\''), QLatin1String("\\'"));
     if (_comment.size() > 1024) {
-        qWarning("comment() / COMMENT can not exceed 1024 characters. Your comment is %i characters long. It will be truncated.", _comment.size());
+        qCWarning(FIR_CORE, "comment() / COMMENT can not exceed 1024 characters. Your comment is %i characters long. It will be truncated.", _comment.size());
         _comment = _comment.left(1024);
     }
     d->comment = _comment;

@@ -6,6 +6,7 @@
 #include "table_p.h"
 #include "column_p.h"
 #include <QStringList>
+#include "logging.h"
 
 using namespace Firfuorida;
 
@@ -90,7 +91,7 @@ void Table::setComment(const QString &comment)
     QString _comment = comment;
     _comment.replace(QLatin1Char('\''), QLatin1String("\\'"));
     if (_comment.size() > 2048) {
-        qWarning("setComment() / COMMENT can not exceed 2048 characters. Your comment is %i characters long. It will be truncated.", _comment.size());
+        qCWarning(FIR_CORE, "setComment() / COMMENT can not exceed 2048 characters. Your comment is %i characters long. It will be truncated.", _comment.size());
         _comment = _comment.left(2048);
     }
     d->comment = _comment;

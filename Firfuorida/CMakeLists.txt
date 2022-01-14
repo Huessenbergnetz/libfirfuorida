@@ -10,6 +10,7 @@ set(firfuorida_SRC
 
 set(firfuorida_HEADERS
     firfuorida_global.h
+    logging.h
     migrator.h
     Migrator
     migration.h
