@@ -67,8 +67,7 @@ public:
         ODBC        = 6,
         OCI         = 7,
         PSQL        = 8,
-        SQLite      = 9,
-        TDS         = 10
+        SQLite      = 9
     };
 
     /*!

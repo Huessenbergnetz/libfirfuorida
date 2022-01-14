@@ -29,8 +29,6 @@ void MigratorPrivate::setDbType()
         dbType = Migrator::PSQL;
     } else if (db.driverName() == QLatin1String("QSQLITE")) {
         dbType = Migrator::SQLite;
-    } else if (db.driverName() == QLatin1String("QTDS")) {
-        dbType = Migrator::TDS;
     } else {
         qWarning("Invalid/not supported database driver \"%s\" set.", qUtf8Printable(db.driverName()));
     }
