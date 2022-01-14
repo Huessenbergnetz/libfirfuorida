@@ -52,9 +52,14 @@ public:
      */
     void setCharset(const QString &charset);
     /*!
-     * \brief Set the \a collation when creating a new tbale or change it for an existing table.
+     * \brief Set the \a collation when creating a new table or change it for an existing table.
      */
     void setCollation(const QString &collation);
+    /*!
+     * \brief Sets a \a comment when creating a new table of change it for an existing table.
+     * \note The maximum size for a column comment on MySQL/MariaDB is \c 2048 characters.
+     */
+    void setComment(const QString &comment);
 
     /*!
      * \brief Creates/modifies an unsigned tiny integer primary key column that auto increments with given \a columnName and returns a pointer to the Column object.

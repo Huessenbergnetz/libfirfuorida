@@ -33,6 +33,7 @@ public:
     QString charset;
     QString collation;
     QString raw;
+    QString comment;
     Table *q_ptr = nullptr;
     TableOperation operation = CreateTable;
     bool temporary = false;

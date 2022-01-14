@@ -41,6 +41,9 @@ QString TablePrivate::queryString() const
         if (!collation.isEmpty()) {
             qs += QStringLiteral(" COLLATE = ") + collation;
         }
+        if (!comment.isEmpty()) {
+            qs += QStringLiteral(" COMMENT = \"") + comment + QStringLiteral("\"");
+        }
     } else if (operation == DropTable) {
         qs = QStringLiteral("DROP TABLE ") + q->objectName();
     } else if (operation == DropTableIfExists) {
@@ -79,6 +82,18 @@ void Table::setCollation(const QString &collation)
 {
     Q_D(Table);
     d->collation = collation;
+}
+
+void Table::setComment(const QString &comment)
+{
+    Q_D(Table);
+    QString _comment = comment;
+    _comment.replace(QLatin1Char('\''), QLatin1String("\\'"));
+    if (_comment.size() > 2048) {
+        qWarning("setComment() / COMMENT can not exceed 2048 characters. Your comment is %i characters long. It will be truncated.", _comment.size());
+        _comment = _comment.left(2048);
+    }
+    d->comment = _comment;
 }
 
 Column* Table::tinyIncrements(const QString &columnName)
