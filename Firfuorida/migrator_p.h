@@ -13,8 +13,12 @@ namespace Firfuorida {
 class MigratorPrivate
 {
 public:
+    void setDbType();
+
+    QSqlDatabase db;
     QString connectionName;
     QString migrationsTable;
+    Migrator::DatabaseType dbType = Migrator::Invalid;
 };
 
 }

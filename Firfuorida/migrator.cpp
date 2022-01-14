@@ -11,6 +11,31 @@
 
 using namespace Firfuorida;
 
+void MigratorPrivate::setDbType()
+{
+    if (db.driverName() == QLatin1String("QDB2")) {
+        dbType = Migrator::DB2;
+    } else if (db.driverName() == QLatin1String("QIBASE")) {
+        dbType = Migrator::InterBase;
+    } else if (db.driverName() == QLatin1String("QMYSQL")) {
+        dbType = Migrator::MySQL;
+    } else if (db.driverName() == QLatin1String("MARIADB")) {
+        dbType = Migrator::MariaDB;
+    } else if (db.driverName() == QLatin1String("ODBC")) {
+        dbType = Migrator::ODBC;
+    } else if (db.driverName() == QLatin1String("QOCI")) {
+        dbType = Migrator::OCI;
+    } else if (db.driverName() == QLatin1String("QPSQL")) {
+        dbType = Migrator::PSQL;
+    } else if (db.driverName() == QLatin1String("QSQLITE")) {
+        dbType = Migrator::SQLite;
+    } else if (db.driverName() == QLatin1String("QTDS")) {
+        dbType = Migrator::TDS;
+    } else {
+        qWarning("Invalid/not supported database driver \"%s\" set.", qUtf8Printable(db.driverName()));
+    }
+}
+
 Migrator::Migrator(QObject *parent) :
     QObject(parent), dptr(new MigratorPrivate)
 {
@@ -53,13 +78,15 @@ bool Migrator::migrate()
 
     Q_D(Migrator);
 
-    QSqlDatabase db = QSqlDatabase::database(d->connectionName);
-    if (!db.isOpen()) {
-        qCritical("Can not open database connection \"%s\": %s", qUtf8Printable(d->connectionName), qUtf8Printable(db.lastError().text()));
+    d->db = QSqlDatabase::database(d->connectionName);
+    if (!d->db.isOpen()) {
+        qCritical("Can not open database connection \"%s\": %s", qUtf8Printable(d->connectionName), qUtf8Printable(d->db.lastError().text()));
         return false;
     }
 
-    QSqlQuery query(db);
+    d->setDbType();
+
+    QSqlQuery query(d->db);
     if (!query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS %1 ("
                                    "migration VARCHAR(255) NOT NULL, "
                                    "applied DATETIME DEFAULT CURRENT_TIMESTAMP, "
@@ -113,6 +140,8 @@ bool Migrator::rollback(uint steps)
         qCritical("Can not open database connection \"%s\": %s", qUtf8Printable(d->connectionName), qUtf8Printable(db.lastError().text()));
         return false;
     }
+
+    d->setDbType();
 
     QStringList appliedMigrations;
     QSqlQuery query(db);

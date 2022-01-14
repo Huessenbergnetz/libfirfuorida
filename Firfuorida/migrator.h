@@ -58,6 +58,19 @@ public:
      */
     ~Migrator();
 
+    enum DatabaseType : uint8_t {
+        Invalid     = 0,
+        DB2         = 1,
+        InterBase   = 2,
+        MySQL       = 3,
+        MariaDB     = 5,
+        ODBC        = 6,
+        OCI         = 7,
+        PSQL        = 8,
+        SQLite      = 9,
+        TDS         = 10
+    };
+
     /*!
      * \brief Returns the name of the used SQL connection.
      */
