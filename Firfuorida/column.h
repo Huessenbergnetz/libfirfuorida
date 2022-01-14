@@ -20,6 +20,10 @@ class ColumnPrivate;
  *
  * The %Column object can only be created by functions of the Table class.
  *
+ * <h2>Example</h2>
+ * example.cpp
+ * \include examplemigration.cpp
+ *
  * \headerfile "" <Firfuorida/Column>
  */
 class FIRFUORIDA_LIBRARY Column : public QObject
@@ -37,20 +41,63 @@ public:
      */
     ~Column() override;
 
-    Column* autoIncrement();
-    Column* unSigned();
+    /*!
+     * \brief Enables or disables the auto increment feature for this column.
+     */
+    Column* autoIncrement(bool autoIncrement = true);
+    /*!
+     * \brief Sets the column to signed or unsigned.
+     */
+    Column* unSigned(bool unSigned = true);
+    /*!
+     * \brief Sets the character set used for this column.
+     */
     Column* charset(const QString &charset);
+    /*!
+     * \brief Sets the collation used for this column.
+     */
     Column* collation(const QString &collation);
+    /*!
+     * \brief Sets the default value for this column.
+     */
     Column* defaultValue(const QVariant &defVal);
+    /*!
+     * \brief Sets the columns to nullable or not.
+     */
     Column* nullable(bool isNullable = true);
-    Column* useCurrent();
-    Column* primary();
-    Column* unique();
+    Column* useCurrent(bool useCurrent = true);
+    /*!
+     * \brief Makes the column a primary key column or not.
+     */
+    Column* primary(bool primary = true);
+    /*!
+     * \brief Makes the column a unique key column or not.
+     */
+    Column* unique(bool unique = true);
+    /*!
+     * \brief Adds the onDelete action to a foreign key column.
+     */
     Column* onDelete(const QString &referenceOption);
+    /*!
+     * \brief Adds the onUpdate action to a foreign key column.
+     */
     Column* onUpdate(const QString &referenceOption);
+    /*!
+     * \brief Add a \a comment to the column.
+     * \note The maximum size for a column comment on MySQL/MariaDB is \c 1024 characters.
+     */
     Column* comment(const QString &comment);
-    void after(const QString &columnName);
+    /*!
+     * \brief Put/move this column after \a otherColumn.
+     */
+    void after(const QString &otherColumn);
+    /*!
+     * \brief Add/move this column to the beginning as first column.
+     */
     void first();
+    /*!
+     * \brief Mark this column as a column to change instead of creating it.
+     */
     void change();
 };
 

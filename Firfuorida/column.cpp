@@ -326,22 +326,22 @@ Column::~Column()
 
 }
 
-Column* Column::autoIncrement()
+Column* Column::autoIncrement(bool autoIncrement)
 {
     Q_D(Column);
     if (d->type < ColumnPrivate::Decimal || (d->type > ColumnPrivate::Numeric && d->type < ColumnPrivate::Bit)) {
-        d->_autoIncrement = true;
+        d->_autoIncrement = autoIncrement;
     } else {
         qWarning("autoIncrement() / AUTO_INCREMENT attribute is only usable on integer and flotaing-point data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
     }
     return this;
 }
 
-Column* Column::unSigned()
+Column* Column::unSigned(bool unSigned)
 {
     Q_D(Column);
     if (d->type < ColumnPrivate::Bit) {
-        d->_unsigned = true;
+        d->_unsigned = unSigned;
     } else {
         qWarning("unSigned() / UNSIGNED attribute is only usable on numeric data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
     }
@@ -392,29 +392,29 @@ Column *Column::nullable(bool isNullable)
     return this;
 }
 
-Column *Column::useCurrent()
+Column *Column::useCurrent(bool useCurrent)
 {
     Q_D(Column);
-    d->_useCurrent = true;
+    d->_useCurrent = useCurrent;
     return this;
 }
 
-Column *Column::primary()
+Column *Column::primary(bool primary)
 {
     Q_D(Column);
     if (d->type < ColumnPrivate::Key) {
-        d->_primaryKey = true;
+        d->_primaryKey = primary;
     } else {
         qWarning("primary() / PRIMARY KEY attribute is only usable on data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
     }
     return this;
 }
 
-Column *Column::unique()
+Column *Column::unique(bool unique)
 {
     Q_D(Column);
     if (d->type < ColumnPrivate::Key) {
-        d->_unique = true;
+        d->_unique = unique;
     } else {
         qWarning("unique() / UNIQUE attribute is only usable on data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
     }
@@ -456,10 +456,10 @@ Column *Column::comment(const QString &comment)
     return this;
 }
 
-void Column::after(const QString &columnName)
+void Column::after(const QString &otherColumn)
 {
     Q_D(Column);
-    d->after = columnName;
+    d->after = otherColumn;
 }
 
 void Column::first()
