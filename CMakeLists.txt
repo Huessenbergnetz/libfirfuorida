@@ -98,7 +98,7 @@ if (BUILD_DOCS)
     endif(BUILD_DOCS_QUIET)
 
     set(DOXYGEN_STRIP_FROM_PATH ${CMAKE_SOURCE_DIR})
-    set(DOXYGEN_GENERATE_TAGFILE ${CMAKE_CURRENT_BINARY_DIR}/firefuorida.tags)
+    set(DOXYGEN_GENERATE_TAGFILE ${CMAKE_CURRENT_BINARY_DIR}/firfuorida.tags)
     set(DOXYGEN_BUILTIN_STL_SUPPORT "YES")
     set(DOXYGEN_VERBATIM_HEADERS "NO")
     set(DOXYGEN_ALWAYS_DETAILED_SEC "YES")
@@ -179,15 +179,15 @@ if (BUILD_DOCS)
     )
     message(STATUS "Adding make target htmldocs")
 
-    find_program(DOXYGEN_QHG_LOCATION NAMES qhelpgenerator-qt5 qhelpgenerator5 qhelpgenerator)
+    find_program(DOXYGEN_QHG_LOCATION NAMES qhelpgenerator-qt${QT_VERSION_MAJOR} qhelpgenerator${QT_VERSION_MAJOR} qhelpgenerator)
     if(DOXYGEN_QHG_LOCATION)
         message(STATUS "qhelpgenerator found. QCH docs building available.")
         set(DOXYGEN_TAGFILES ${QCHTAGS})
         set(DOXYGEN_HTML_OUTPUT "qtdocs")
         set(DOXYGEN_GENERATE_QHP "YES")
-        set(DOXYGEN_QHP_NAMESPACE "de.huessenbergnetz.firefuorida.${PROJECT_VERSION_MAJOR}${PROJECT_VERSION_MINOR}${PROJECT_VERSION_PATCH}")
-        set(DOXYGEN_QHP_VIRTUAL_FOLDER "libfirefuorida")
-        set(DOXYGEN_QCH_FILE "${CMAKE_CURRENT_BINARY_DIR}/firefuorida.qch")
+        set(DOXYGEN_QHP_NAMESPACE "de.huessenbergnetz.firfuorida.${PROJECT_VERSION_MAJOR}${PROJECT_VERSION_MINOR}${PROJECT_VERSION_PATCH}")
+        set(DOXYGEN_QHP_VIRTUAL_FOLDER "libfirfuorida")
+        set(DOXYGEN_QCH_FILE "${CMAKE_CURRENT_BINARY_DIR}/firfuorida.qch")
         set(DOXYGEN_SEARCHENGINE "NO")
         doxygen_add_docs(qtdocs
             ${CMAKE_CURRENT_SOURCE_DIR}
@@ -196,20 +196,20 @@ if (BUILD_DOCS)
         message(STATUS "Adding make target qtdocs")
     endif(DOXYGEN_QHG_LOCATION)
 
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/firefuorida.qch
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/firfuorida.qch
         DESTINATION ${DOCS_QTDOCSDIR}
         COMPONENT docs
         OPTIONAL
     )
 
     install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/htmldocs/
-        DESTINATION ${DOCS_QTDOCSDIR}/firefuorida
+        DESTINATION ${DOCS_QTDOCSDIR}/firfuorida
         COMPONENT docs
         OPTIONAL
     )
 
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/firefuorida.tags
-        DESTINATION ${DOCS_QTDOCSDIR}/firefuorida
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/firfuorida.tags
+        DESTINATION ${DOCS_QTDOCSDIR}/firfuorida
         COMPONENT development
         OPTIONAL
     )
