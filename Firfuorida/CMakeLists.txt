@@ -17,6 +17,7 @@ set(firfuorida_HEADERS
     table.h
     Table
     column.h
+    Column
 )
 
 set(firfuorida_PRIVATE_HEADERS
