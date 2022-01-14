@@ -58,16 +58,19 @@ public:
      */
     ~Migrator();
 
+    /*!
+     * \brief These are the database systems supported by default by Qt.
+     */
     enum DatabaseType : uint8_t {
-        Invalid     = 0,
-        DB2         = 1,
-        InterBase   = 2,
-        MySQL       = 3,
-        MariaDB     = 5,
-        ODBC        = 6,
-        OCI         = 7,
-        PSQL        = 8,
-        SQLite      = 9
+        Invalid     = 0,    /**< No valid database diver/type has been set. */
+        DB2         = 1,    /**< IBM DB2 (version 7.1 and above) */
+        InterBase   = 2,    /**< Borland InterBase */
+        MySQL       = 3,    /**< MySQL */
+        MariaDB     = 5,    /**< MariaDB (version 5.0 and above) */
+        ODBC        = 6,    /**< Open Database Connectivity (ODBC) - Microsoft SQL Server and other ODBC-compliant databases */
+        OCI         = 7,    /**< Oracle Call Interface Driver */
+        PSQL        = 8,    /**< PostgreSQL (versions 7.3 and above) */
+        SQLite      = 9     /**< SQLite version 3 */
     };
 
     /*!
