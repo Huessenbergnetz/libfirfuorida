@@ -7,6 +7,7 @@
 #define MIGRATOR_P_H
 
 #include "migrator.h"
+#include <QVersionNumber>
 
 namespace Firfuorida {
 
@@ -14,10 +15,13 @@ class MigratorPrivate
 {
 public:
     void setDbType();
+    QString dbTypeToStr() const;
+    void setDbVersion();
 
     QSqlDatabase db;
     QString connectionName;
     QString migrationsTable;
+    QVersionNumber dbVersion;
     Migrator::DatabaseType dbType = Migrator::Invalid;
 };
 

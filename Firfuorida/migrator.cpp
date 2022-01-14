@@ -34,6 +34,57 @@ void MigratorPrivate::setDbType()
     }
 }
 
+QString MigratorPrivate::dbTypeToStr() const
+{
+    switch(dbType) {
+    case Migrator::DB2:
+        return QStringLiteral("IBM DB2");
+    case Migrator::InterBase:
+        return QStringLiteral("Borland InterBase");
+    case Migrator::MySQL:
+        return QStringLiteral("MySQL");
+    case Migrator::MariaDB:
+        return QStringLiteral("MariaDB");
+    case Migrator::ODBC:
+        return QStringLiteral("Open Database Connectivity (ODBC)");
+    case Migrator::OCI:
+        return QStringLiteral("Oracle Call Interface");
+    case Migrator::PSQL:
+        return QStringLiteral("PostgreSQL");
+    case Migrator::SQLite:
+        return QStringLiteral("SQLite");
+    default:
+        return QStringLiteral("Invalid");
+    }
+}
+
+void MigratorPrivate::setDbVersion()
+{
+    QSqlQuery q(db);
+    if (dbType == Migrator::MySQL || dbType == Migrator::MariaDB) {
+        if (q.exec(QStringLiteral("SHOW VARIABLES WHERE Variable_name = 'version'"))) {
+            if (q.next()) {
+                const QString version = q.value(1).toString();
+                int suffixIndex = -1;
+                dbVersion = QVersionNumber::fromString(version, &suffixIndex);
+                if (!dbVersion.isNull()) {
+                    if (suffixIndex > -1) {
+                        if (version.midRef(suffixIndex).contains(QLatin1String("MariaDB"), Qt::CaseInsensitive)) {
+                            dbType = Migrator::MariaDB;
+                        }
+                    }
+                } else {
+                    qWarning("Can not find valid database version information in \"%s\".", qUtf8Printable(version));
+                }
+            } else {
+                qCritical("%s", "Can not find database version information.");
+            }
+        } else {
+            qCritical("Failed to execute query to determine MySQL/MariaDB database version: %s", qUtf8Printable(q.lastError().text()));
+        }
+    }
+}
+
 Migrator::Migrator(QObject *parent) :
     QObject(parent), dptr(new MigratorPrivate)
 {
@@ -83,6 +134,9 @@ bool Migrator::migrate()
     }
 
     d->setDbType();
+    d->setDbVersion();
+
+    qInfo("Start database migrations on %s database version %s", qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion.toString()));
 
     QSqlQuery query(d->db);
     if (!query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS %1 ("
@@ -140,6 +194,9 @@ bool Migrator::rollback(uint steps)
     }
 
     d->setDbType();
+    d->setDbVersion();
+
+    qInfo("Start rolling back database migrations on %s database version %s", qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion.toString()));
 
     QStringList appliedMigrations;
     QSqlQuery query(db);
