@@ -72,7 +72,7 @@ void MigratorPrivate::setDbVersion()
                 dbVersion = QVersionNumber::fromString(version, &suffixIndex);
                 if (!dbVersion.isNull()) {
                     if (suffixIndex > -1) {
-                        if (version.midRef(suffixIndex).contains(QLatin1String("MariaDB"), Qt::CaseInsensitive)) {
+                        if (version.mid(suffixIndex).contains(QLatin1String("MariaDB"), Qt::CaseInsensitive)) {
                             dbType = Migrator::MariaDB;
                         }
                     }
