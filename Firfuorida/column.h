@@ -14,6 +14,7 @@
 namespace Firfuorida {
 
 class ColumnPrivate;
+class Table;
 
 /*!
  * \brief Contains information about a single column, either to creaste or to modify.
@@ -34,7 +35,7 @@ class FIRFUORIDA_LIBRARY Column : public QObject
     friend class TablePrivate;
     const QScopedPointer<ColumnPrivate> dptr;
     Q_DECLARE_PRIVATE_D(dptr, Column)
-    explicit Column(QObject *parent);
+    explicit Column(Table *parent);
 public:
     /*!
      * \brief Deconstructs the %Column object.

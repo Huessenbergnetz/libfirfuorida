@@ -7,6 +7,7 @@
 #include "column_p.h"
 #include <QStringList>
 #include "logging.h"
+#include "migration.h"
 
 using namespace Firfuorida;
 
@@ -56,7 +57,23 @@ QString TablePrivate::queryString() const
     return qs;
 }
 
-Table::Table(QObject *parent) : QObject(parent), dptr(new TablePrivate)
+Migrator::DatabaseType TablePrivate::dbType() const
+{
+    Q_Q(const Table);
+    auto migration = qobject_cast<Migration*>(q->parent());
+    auto migrator = qobject_cast<Migrator*>(migration->parent());
+    return migrator->dbType();
+}
+
+QVersionNumber TablePrivate::dbVersion() const
+{
+    Q_Q(const Table);
+    auto migration = qobject_cast<Migration*>(q->parent());
+    auto migrator = qobject_cast<Migrator*>(migration->parent());
+    return migrator->dbVersion();
+}
+
+Table::Table(Firfuorida::Migration *parent) : QObject(parent), dptr(new TablePrivate)
 {
     Q_D(Table);
     d->q_ptr = this;

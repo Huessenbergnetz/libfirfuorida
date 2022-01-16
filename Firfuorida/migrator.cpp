@@ -108,6 +108,18 @@ Migrator::~Migrator()
 
 }
 
+Migrator::DatabaseType Migrator::dbType() const
+{
+    Q_D(const Migrator);
+    return d->dbType;
+}
+
+QVersionNumber Migrator::dbVersion() const
+{
+    Q_D(const Migrator);
+    return d->dbVersion;
+}
+
 QString Migrator::connectionName() const
 {
     Q_D(const Migrator);

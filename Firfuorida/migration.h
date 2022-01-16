@@ -149,6 +149,9 @@ protected:
     void raw(const QString &statement);
     void executeUpFunction();
     void executeDownFunction();
+
+    QVersionNumber dbVersion() const;
+    Migrator::DatabaseType dbType() const;
 };
 
 }

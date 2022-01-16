@@ -8,6 +8,7 @@
 
 #include "table.h"
 #include "migration.h"
+#include "migrator.h"
 #include <functional>
 
 namespace Firfuorida {
@@ -27,6 +28,9 @@ public:
     };
 
     QString queryString() const;
+
+    Migrator::DatabaseType dbType() const;
+    QVersionNumber dbVersion() const;
 
     QString newName;
     QString engine;

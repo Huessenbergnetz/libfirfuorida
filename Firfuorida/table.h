@@ -13,6 +13,7 @@
 namespace Firfuorida {
 
 class TablePrivate;
+class Migration;
 
 /*!
  * \brief Contains information about a single table, either to create or to modify.
@@ -36,7 +37,7 @@ class FIRFUORIDA_LIBRARY Table : public QObject
     friend class MigrationPrivate;
     const QScopedPointer<TablePrivate> dptr;
     Q_DECLARE_PRIVATE_D(dptr, Table)
-    explicit Table(QObject *parent);
+    explicit Table(Migration *parent);
 public:
     /*!
      * \brief Deconstructs the %Table object.

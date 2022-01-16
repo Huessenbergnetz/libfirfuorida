@@ -10,6 +10,8 @@
 #include <QDateTime>
 #include <QBitArray>
 #include "logging.h"
+#include "table.h"
+#include "migration.h"
 
 using namespace Firfuorida;
 
@@ -316,7 +318,25 @@ QString ColumnPrivate::queryString() const
     return qs;
 }
 
-Column::Column(QObject *parent) : QObject(parent), dptr(new ColumnPrivate)
+Migrator::DatabaseType ColumnPrivate::dbType() const
+{
+    Q_Q(const Column);
+    auto table = qobject_cast<Table*>(q->parent());
+    auto migration = qobject_cast<Migration*>(table->parent());
+    auto migrator = qobject_cast<Migrator*>(migration->parent());
+    return migrator->dbType();
+}
+
+QVersionNumber ColumnPrivate::dbVersion() const
+{
+    Q_Q(const Column);
+    auto table = qobject_cast<Table*>(q->parent());
+    auto migration = qobject_cast<Migration*>(table->parent());
+    auto migrator = qobject_cast<Migrator*>(migration->parent());
+    return migrator->dbVersion();
+}
+
+Column::Column(Table *parent) : QObject(parent), dptr(new ColumnPrivate)
 {
     Q_D(Column);
     d->q_ptr = this;
@@ -375,6 +395,18 @@ Column* Column::defaultValue(const QVariant &defVal)
 {
     Q_D(Column);
     if (d->type < ColumnPrivate::Key) {
+        if (d->dbType() == Migrator::MySQL) {
+            if ((d->type > ColumnPrivate::VarBinary && d->type < ColumnPrivate::Char) || (d->type > ColumnPrivate::VarChar && d->type < ColumnPrivate::Enum)) {
+                qCWarning(FIR_CORE, "MySQL does not support DEFAULT values on TEXT or BLOB type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
+                return this;
+            }
+        }
+        if ((d->dbType() == Migrator::MariaDB && d->dbVersion() < QVersionNumber(10,2,1))) {
+            if ((d->type > ColumnPrivate::VarBinary && d->type < ColumnPrivate::Char) || (d->type > ColumnPrivate::VarChar && d->type < ColumnPrivate::Enum)) {
+                qCWarning(FIR_CORE, "MariaDB before version 10.2.1 does not support DEFAULT values on TEXT and BLOB type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
+                return this;
+            }
+        }
         d->defVal = defVal;
     } else {
         qCWarning(FIR_CORE, "defaultValue() / DEFAULT attribute is only usable on data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));

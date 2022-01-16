@@ -182,4 +182,14 @@ bool Migration::executeDown()
     return false;
 }
 
+Migrator::DatabaseType Migration::dbType() const
+{
+    return qobject_cast<Migrator*>(parent())->dbType();
+}
+
+QVersionNumber Migration::dbVersion() const
+{
+    return qobject_cast<Migrator*>(parent())->dbVersion();
+}
+
 #include "moc_migration.cpp"

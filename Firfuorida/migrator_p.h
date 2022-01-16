@@ -7,7 +7,6 @@
 #define MIGRATOR_P_H
 
 #include "migrator.h"
-#include <QVersionNumber>
 
 namespace Firfuorida {
 

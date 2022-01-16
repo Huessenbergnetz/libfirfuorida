@@ -9,6 +9,7 @@
 #include "firfuorida_global.h"
 #include <QObject>
 #include <QSqlDatabase>
+#include <QVersionNumber>
 
 namespace Firfuorida {
 
@@ -72,6 +73,20 @@ public:
         PSQL        = 8,    /**< PostgreSQL (versions 7.3 and above) */
         SQLite      = 9     /**< SQLite version 3 */
     };
+
+    /*!
+     * \brief Returns the type of the used database system.
+     *
+     * This is only available after migrate() or rollback() has been called.
+     */
+    DatabaseType dbType() const;
+
+    /*!
+     * \brief Returns the version of the used database system.
+     *
+     * This is only available after migrate() or rollback() has benn called.
+     */
+    QVersionNumber dbVersion() const;
 
     /*!
      * \brief Returns the name of the used SQL connection.

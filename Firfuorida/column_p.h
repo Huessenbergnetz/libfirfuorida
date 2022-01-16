@@ -7,6 +7,7 @@
 #define FIRFUORIDA_COLUMN_P_H
 
 #include "column.h"
+#include "migrator.h"
 
 namespace Firfuorida {
 
@@ -61,6 +62,8 @@ public:
     QString typeString() const;
     QString queryString() const;
     QString defValString() const;
+    Migrator::DatabaseType dbType() const;
+    QVersionNumber dbVersion() const;
 
     QString charset;
     QString collation;
