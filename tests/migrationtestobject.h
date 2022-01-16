@@ -11,6 +11,8 @@
 #include <QTemporaryDir>
 #include <QTemporaryFile>
 #include <QVariant>
+#include <QVersionNumber>
+#include "../Firfuorida/migrator.h"
 
 class MigrationTestObject : public QObject
 {
@@ -40,6 +42,10 @@ protected:
     bool tableExists(const QString &tableName) const;
 
     bool checkTableEngine(const QString &tableName, const QString &engine) const;
+    bool checkTableCollation(const QString &tableName, const QString &collation) const;
+    bool checkTableComment(const QString &tableName, const QString &comment) const;
+
+    bool dbSupportsDefValOnTextAndBlob() const;
 
     bool checkColumn(const QString &table, const QString &column, const QString &type, ColOpts options = NoOptions, const QVariant &defVal = QVariant()) const;
 
@@ -52,6 +58,8 @@ private:
     QProcess m_mysqlProcess;
     QString m_dbRootConn;
     QString m_dbName;
+    QVersionNumber m_dbVersion;
+    Firfuorida::Migrator::DatabaseType m_dbType = Firfuorida::Migrator::Invalid;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(MigrationTestObject::ColOpts)

@@ -162,7 +162,11 @@ void MigrationTest::testTinyCols()
     QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("id"), QStringLiteral("tinyint"), MigrationTestObject::PrimaryKey|MigrationTestObject::AutoIncrement|MigrationTestObject::Unsigned));
     QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyIntCol"), QStringLiteral("tinyint"), MigrationTestObject::Unique));
     QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyBlobCol"), QStringLiteral("tinyblob"), MigrationTestObject::Nullable));
-    QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyTextCol"), QStringLiteral("tinytext"), MigrationTestObject::NoOptions, QStringLiteral("dummer schiss")));
+    if (dbSupportsDefValOnTextAndBlob()) {
+        QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyTextCol"), QStringLiteral("tinytext"), MigrationTestObject::NoOptions, QStringLiteral("dummer schiss")));
+    } else {
+        QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyTextCol"), QStringLiteral("tinytext"), MigrationTestObject::NoOptions));
+    }
     QVERIFY(migrator->rollback());
     QVERIFY(!tableExists(QStringLiteral("tiny")));
 }
@@ -174,7 +178,11 @@ void MigrationTest::testMigration()
     QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("id"), QStringLiteral("tinyint"), MigrationTestObject::PrimaryKey|MigrationTestObject::AutoIncrement|MigrationTestObject::Unsigned));
     QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyIntCol"), QStringLiteral("tinyint"), MigrationTestObject::Unique));
     QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyBlobCol"), QStringLiteral("tinyblob"), MigrationTestObject::Nullable));
-    QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyTextCol"), QStringLiteral("tinytext"), MigrationTestObject::NoOptions, QStringLiteral("dummer schiss")));
+    if (dbSupportsDefValOnTextAndBlob()) {
+        QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyTextCol"), QStringLiteral("tinytext"), MigrationTestObject::NoOptions, QStringLiteral("dummer schiss")));
+    } else {
+        QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyTextCol"), QStringLiteral("tinytext"), MigrationTestObject::NoOptions));
+    }
     QVERIFY(tableExists(QStringLiteral("small")));
     QVERIFY(checkColumn(QStringLiteral("small"), QStringLiteral("id"), QStringLiteral("smallint"), MigrationTestObject::PrimaryKey|MigrationTestObject::AutoIncrement|MigrationTestObject::Unsigned));
     QVERIFY(tableExists(QStringLiteral("medium")));
