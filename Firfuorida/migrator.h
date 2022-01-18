@@ -92,7 +92,9 @@ public:
         MonetaryTypes       = 1 << 8, /**< Supports monetary data types. */
         ForeignKeys         = 1 << 9, /**< Supports foreign key constraints. */
         CommentsOnColumns   = 1 << 10, /**< Supports comments on columns. */
-        CommentsOnTables    = 1 << 11  /**< Supports comments on tables. */
+        CommentsOnTables    = 1 << 11, /**< Supports comments on tables. */
+        SetType             = 1 << 12, /**< Supports SET data type. */
+        EnumType            = 1 << 13  /**< Supports ENUM data type. */
     };
     Q_DECLARE_FLAGS(DatabaseFeatures, DatabaseFeature)
     Q_FLAGS(DatabaseFeatures)

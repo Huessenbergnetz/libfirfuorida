@@ -123,6 +123,8 @@ bool Migrator::initDatabase()
         d->dbFeatures |= ForeignKeys;
         d->dbFeatures |= CommentsOnColumns;
         d->dbFeatures |= CommentsOnTables;
+        d->dbFeatures |= SetType;
+        d->dbFeatures |= EnumType;
     }
         break;
     case MariaDB:
@@ -134,6 +136,8 @@ bool Migrator::initDatabase()
         d->dbFeatures |= ForeignKeys;
         d->dbFeatures |= CommentsOnColumns;
         d->dbFeatures |= CommentsOnTables;
+        d->dbFeatures |= SetType;
+        d->dbFeatures |= EnumType;
     }
         break;
     case ODBC:
@@ -152,6 +156,8 @@ bool Migrator::initDatabase()
         d->dbFeatures |= ForeignKeys;
         d->dbFeatures |= CommentsOnColumns;
         d->dbFeatures |= CommentsOnTables;
+        d->dbFeatures |= SetType;
+        d->dbFeatures |= EnumType;
     }
         break;
     case SQLite:
