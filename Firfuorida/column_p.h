@@ -62,8 +62,12 @@ public:
     QString typeString() const;
     QString queryString() const;
     QString defValString() const;
+
     Migrator::DatabaseType dbType() const;
+    QString dbTypeToStr() const;
     QVersionNumber dbVersion() const;
+    Migrator::DatabaseFeatures dbFeatures() const;
+    bool isDbFeatureAvailable(Migrator::DatabaseFeatures dbFeatures) const;
 
     QString charset;
     QString collation;

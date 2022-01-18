@@ -327,6 +327,15 @@ Migrator::DatabaseType ColumnPrivate::dbType() const
     return migrator->dbType();
 }
 
+QString ColumnPrivate::dbTypeToStr() const
+{
+    Q_Q(const Column);
+    auto table = qobject_cast<Table*>(q->parent());
+    auto migration = qobject_cast<Migration*>(table->parent());
+    auto migrator = qobject_cast<Migrator*>(migration->parent());
+    return migrator->dbTypeToStr();
+}
+
 QVersionNumber ColumnPrivate::dbVersion() const
 {
     Q_Q(const Column);
@@ -334,6 +343,24 @@ QVersionNumber ColumnPrivate::dbVersion() const
     auto migration = qobject_cast<Migration*>(table->parent());
     auto migrator = qobject_cast<Migrator*>(migration->parent());
     return migrator->dbVersion();
+}
+
+Migrator::DatabaseFeatures ColumnPrivate::dbFeatures() const
+{
+    Q_Q(const Column);
+    auto table = qobject_cast<Table*>(q->parent());
+    auto migration = qobject_cast<Migration*>(table->parent());
+    auto migrator = qobject_cast<Migrator*>(migration->parent());
+    return migrator->dbFeatures();
+}
+
+bool ColumnPrivate::isDbFeatureAvailable(Migrator::DatabaseFeatures dbFeatures) const
+{
+    Q_Q(const Column);
+    auto table = qobject_cast<Table*>(q->parent());
+    auto migration = qobject_cast<Migration*>(table->parent());
+    auto migrator = qobject_cast<Migrator*>(migration->parent());
+    return migrator->isDbFeatureAvailable(dbFeatures);
 }
 
 Column::Column(Table *parent) : QObject(parent), dptr(new ColumnPrivate)
@@ -395,6 +422,15 @@ Column* Column::defaultValue(const QVariant &defVal)
 {
     Q_D(Column);
     if (d->type < ColumnPrivate::Key) {
+        if ((d->type > ColumnPrivate::VarBinary && d->type < ColumnPrivate::Char) && !d->isDbFeatureAvailable(Migrator::DefValOnBlob)) {
+            qCWarning(FIR_CORE, "%s %s does not support DEFAULT values on BLOB type columns. \"%s\" is of type %s.", qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion().toString()), qUtf8Printable(objectName()),  qUtf8Printable(d->typeString()));
+            return this;
+        }
+        if ((d->type > ColumnPrivate::VarChar && d->type < ColumnPrivate::Enum) && !d->isDbFeatureAvailable(Migrator::DefValOnText)) {
+            qCWarning(FIR_CORE, "%s %s does not support DEFAULT values on TEXT type columns. \"%s\" is of type %s.", qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion().toString()), qUtf8Printable(objectName()),  qUtf8Printable(d->typeString()));
+            return this;
+        }
+
         if (d->dbType() == Migrator::MySQL) {
             if ((d->type > ColumnPrivate::VarBinary && d->type < ColumnPrivate::Char) || (d->type > ColumnPrivate::VarChar && d->type < ColumnPrivate::Enum)) {
                 qCWarning(FIR_CORE, "MySQL does not support DEFAULT values on TEXT or BLOB type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));

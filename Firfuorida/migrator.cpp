@@ -37,30 +37,6 @@ void MigratorPrivate::setDbType()
     }
 }
 
-QString MigratorPrivate::dbTypeToStr() const
-{
-    switch(dbType) {
-    case Migrator::DB2:
-        return QStringLiteral("IBM DB2");
-    case Migrator::InterBase:
-        return QStringLiteral("Borland InterBase");
-    case Migrator::MySQL:
-        return QStringLiteral("MySQL");
-    case Migrator::MariaDB:
-        return QStringLiteral("MariaDB");
-    case Migrator::ODBC:
-        return QStringLiteral("Open Database Connectivity (ODBC)");
-    case Migrator::OCI:
-        return QStringLiteral("Oracle Call Interface");
-    case Migrator::PSQL:
-        return QStringLiteral("PostgreSQL");
-    case Migrator::SQLite:
-        return QStringLiteral("SQLite");
-    default:
-        return QStringLiteral("Invalid");
-    }
-}
-
 void MigratorPrivate::setDbVersion()
 {
     QSqlQuery q(db);
@@ -108,16 +84,112 @@ Migrator::~Migrator()
 
 }
 
+bool Migrator::initDatabase()
+{
+    Q_D(Migrator);
+
+    if (!d->db.isOpen()) {
+        d->db = QSqlDatabase::database(d->connectionName);
+        if (!d->db.isOpen()) {
+            qCCritical(FIR_CORE, "Can not open database connection \"%s\": %s", qUtf8Printable(d->connectionName), qUtf8Printable(d->db.lastError().text()));
+            return false;
+        }
+    }
+
+    d->setDbType();
+    d->setDbVersion();
+
+    switch (d->dbType) {
+    case DB2:
+    case InterBase:
+        break;
+    case MySQL:
+    {
+        d->dbFeatures |= GeometryTypes;
+        if (d->dbVersion >= QVersionNumber(5,7,8)) {
+            d->dbFeatures |= JSONTypes;
+        }
+    }
+        break;
+    case MariaDB:
+    {
+        if (d->dbVersion >= QVersionNumber(10,2,1)) {
+            d->dbFeatures |= DefValOnText;
+            d->dbFeatures |= DefValOnBlob;
+        }
+    }
+        break;
+    case ODBC:
+    case OCI:
+        break;
+    case PSQL:
+    {
+        d->dbFeatures |= DefValOnText;
+        d->dbFeatures |= DefValOnBlob;
+        d->dbFeatures |= DefValOnGeometry;
+        d->dbFeatures |= JSONTypes;
+        d->dbFeatures |= GeometryTypes;
+        d->dbFeatures |= XMLType;
+        d->dbFeatures |= NetworkAddressTypes;
+        d->dbFeatures |= MonetaryTypes;
+    }
+        break;
+    case SQLite:
+        break;
+    default:
+        break;
+    }
+
+    return true;
+}
+
 Migrator::DatabaseType Migrator::dbType() const
 {
     Q_D(const Migrator);
     return d->dbType;
 }
 
+QString Migrator::dbTypeToStr() const
+{
+    Q_D(const Migrator);
+    switch(d->dbType) {
+    case DB2:
+        return QStringLiteral("IBM DB2");
+    case InterBase:
+        return QStringLiteral("Borland InterBase");
+    case MySQL:
+        return QStringLiteral("MySQL");
+    case MariaDB:
+        return QStringLiteral("MariaDB");
+    case ODBC:
+        return QStringLiteral("Open Database Connectivity (ODBC)");
+    case OCI:
+        return QStringLiteral("Oracle Call Interface (OCI)");
+    case PSQL:
+        return QStringLiteral("PostgreSQL");
+    case SQLite:
+        return QStringLiteral("SQLite");
+    default:
+        return QStringLiteral("Invalid");
+    }
+}
+
 QVersionNumber Migrator::dbVersion() const
 {
     Q_D(const Migrator);
     return d->dbVersion;
+}
+
+Migrator::DatabaseFeatures Migrator::dbFeatures() const
+{
+    Q_D(const Migrator);
+    return d->dbFeatures;
+}
+
+bool Migrator::isDbFeatureAvailable(DatabaseFeatures dbFeatures) const
+{
+    Q_D(const Migrator);
+    return (d->dbFeatures & static_cast<int>(dbFeatures)) != 0;
 }
 
 QString Migrator::connectionName() const
@@ -142,16 +214,11 @@ bool Migrator::migrate()
 
     Q_D(Migrator);
 
-    d->db = QSqlDatabase::database(d->connectionName);
-    if (!d->db.isOpen()) {
-        qCCritical(FIR_CORE, "Can not open database connection \"%s\": %s", qUtf8Printable(d->connectionName), qUtf8Printable(d->db.lastError().text()));
+    if (!initDatabase()) {
         return false;
     }
 
-    d->setDbType();
-    d->setDbVersion();
-
-    qCInfo(FIR_CORE, "Start database migrations on %s database version %s", qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion.toString()));
+    qCInfo(FIR_CORE, "Start database migrations on %s database version %s", qUtf8Printable(dbTypeToStr()), qUtf8Printable(d->dbVersion.toString()));
 
     QSqlQuery query(d->db);
     if (!query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS %1 ("
@@ -202,19 +269,14 @@ bool Migrator::rollback(uint steps)
 
     Q_D(Migrator);
 
-    QSqlDatabase db = QSqlDatabase::database(d->connectionName);
-    if (!db.isOpen()) {
-        qCCritical(FIR_CORE, "Can not open database connection \"%s\": %s", qUtf8Printable(d->connectionName), qUtf8Printable(db.lastError().text()));
+    if (!initDatabase()) {
         return false;
     }
 
-    d->setDbType();
-    d->setDbVersion();
-
-    qCInfo(FIR_CORE, "Start rolling back database migrations on %s database version %s", qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion.toString()));
+    qCInfo(FIR_CORE, "Start rolling back database migrations on %s database version %s", qUtf8Printable(dbTypeToStr()), qUtf8Printable(d->dbVersion.toString()));
 
     QStringList appliedMigrations;
-    QSqlQuery query(db);
+    QSqlQuery query(d->db);
     QString qs = QStringLiteral("SELECT migration FROM %1 ORDER BY migration DESC").arg(d->migrationsTable);
     if (steps > 0) {
         qs += QStringLiteral(" LIMIT %1").arg(steps);

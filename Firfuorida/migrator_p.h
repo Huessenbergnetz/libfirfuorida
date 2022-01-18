@@ -14,7 +14,6 @@ class MigratorPrivate
 {
 public:
     void setDbType();
-    QString dbTypeToStr() const;
     void setDbVersion();
 
     QSqlDatabase db;
@@ -22,6 +21,7 @@ public:
     QString migrationsTable;
     QVersionNumber dbVersion;
     Migrator::DatabaseType dbType = Migrator::Invalid;
+    Migrator::DatabaseFeatures dbFeatures = Migrator::NoFeatures;
 };
 
 }

@@ -10,6 +10,7 @@
 #include <QObject>
 #include <QSqlDatabase>
 #include <QVersionNumber>
+#include <QFlags>
 
 namespace Firfuorida {
 
@@ -73,20 +74,69 @@ public:
         PSQL        = 8,    /**< PostgreSQL (versions 7.3 and above) */
         SQLite      = 9     /**< SQLite version 3 */
     };
+    Q_ENUM(DatabaseType)
+
+    /*!
+     * \brief Features supported by the currently used database system.
+     * \sa dbFeatures(), isDbFeatureAvailable()
+     */
+    enum DatabaseFeature : int {
+        NoFeatures          = 1 << 0, /**< No special features are available. */
+        DefValOnText        = 1 << 1, /**< Supports default values on text type columns. */
+        DefValOnBlob        = 1 << 2, /**< Supports default values on blob type columns. */
+        DefValOnGeometry    = 1 << 3, /**< Supports default values on geometry type columns. */
+        JSONTypes           = 1 << 4, /**< Supports JSON data types. */
+        GeometryTypes       = 1 << 5, /**< Supports geometry data types. */
+        XMLType             = 1 << 6, /**< Supports XML data types. */
+        NetworkAddressTypes = 1 << 7, /**< Supports network address data types. */
+        MonetaryTypes       = 1 << 8, /**< Supports monetary data types. */
+    };
+    Q_DECLARE_FLAGS(DatabaseFeatures, DatabaseFeature)
+    Q_FLAGS(DatabaseFeatures)
+
+    /*!
+     * \brief Opens and initializes the database.
+     *
+     * If the databae is not already open, this will try to open it. After that it will set
+     * the dbType(), the dbVersion() and the dbFeatures(). This has not to be called explicitely
+     * but is called by migrate() and rollback() automatically.
+     */
+    bool initDatabase();
 
     /*!
      * \brief Returns the type of the used database system.
      *
-     * This is only available after migrate() or rollback() has been called.
+     * \note This is only availbale after initDatabase(), migrate() or rollback() has been called.
      */
     DatabaseType dbType() const;
 
     /*!
+     * \brief Returns the name of the used database system.
+     *
+     * \note This is only availbale after initDatabase(), migrate() or rollback() has been called.
+     */
+    QString dbTypeToStr() const;
+
+    /*!
      * \brief Returns the version of the used database system.
      *
-     * This is only available after migrate() or rollback() has benn called.
+     * \note This is only availbale after initDatabase(), migrate() or rollback() has been called.
      */
     QVersionNumber dbVersion() const;
+
+    /*!
+     * \brief Returns features supported by the used datbase system.
+     *
+     * \note This is only availbale after initDatabase(), migrate() or rollback() has been called.
+     */
+    DatabaseFeatures dbFeatures() const;
+
+    /*!
+     * \brief Returns \c true if the \a dbFeatures are available on the used database system.
+     *
+     * \note This is only availbale after initDatabase(), migrate() or rollback() has been called.
+     */
+    bool isDbFeatureAvailable(DatabaseFeatures dbFeatures) const;
 
     /*!
      * \brief Returns the name of the used SQL connection.
@@ -120,5 +170,7 @@ public:
 };
 
 }
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(Firfuorida::Migrator::DatabaseFeatures)
 
 #endif // MIGRATOR_H

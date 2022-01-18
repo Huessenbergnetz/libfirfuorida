@@ -150,8 +150,41 @@ protected:
     void executeUpFunction();
     void executeDownFunction();
 
-    QVersionNumber dbVersion() const;
+    /*!
+     * \brief Returns the type of the used database system.
+     *
+     * \note This is only availbale after Migrator::initDatabase(), Migrator::migrate()
+     * or Migrator::rollback() has been called.
+     */
     Migrator::DatabaseType dbType() const;
+    /*!
+     * \brief Returns the name of the used database system.
+     *
+     * \note This is only availbale after Migrator::initDatabase(), Migrator::migrate()
+     * or Migrator::rollback() has been called.
+     */
+    QString dbTypeToStr() const;
+    /*!
+     * \brief Returns the version of the used database system.
+     *
+     * \note This is only availbale after Migrator::initDatabase(), Migrator::migrate()
+     * or Migrator::rollback() has been called.
+     */
+    QVersionNumber dbVersion() const;
+    /*!
+     * \brief Returns features supported by the used datbase system.
+     *
+     * \note This is only availbale after Migrator::initDatabase(), Migrator::migrate()
+     * or Migrator::rollback() has been called.
+     */
+    Migrator::DatabaseFeatures dbFeatures() const;
+    /*!
+     * \brief Returns \c true if the \a dbFeatures are available on the used database system.
+     *
+     * \note This is only availbale after Migrator::initDatabase(), Migrator::migrate()
+     * or Migrator::rollback() has been called.
+     */
+    bool isDbFeatureAvailable(Migrator::DatabaseFeatures dbFeatures) const;
 };
 
 }

@@ -321,19 +321,6 @@ bool MigrationTestObject::checkTableComment(const QString &tableName, const QStr
     return false;
 }
 
-bool MigrationTestObject::dbSupportsDefValOnTextAndBlob() const
-{
-    if (m_dbType == Firfuorida::Migrator::MySQL) {
-        return false;
-    }
-
-    if (m_dbType == Firfuorida::Migrator::MariaDB && m_dbVersion < QVersionNumber(10,2,1)) {
-        return false;
-    }
-
-    return true;
-}
-
 bool MigrationTestObject::checkColumn(const QString &table, const QString &column, const QString &type, ColOpts options, const QVariant &defVal) const
 {
     QSqlQuery q(QSqlDatabase::database(m_dbRootConn));

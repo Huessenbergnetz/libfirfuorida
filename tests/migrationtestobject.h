@@ -45,8 +45,6 @@ protected:
     bool checkTableCollation(const QString &tableName, const QString &collation) const;
     bool checkTableComment(const QString &tableName, const QString &comment) const;
 
-    bool dbSupportsDefValOnTextAndBlob() const;
-
     bool checkColumn(const QString &table, const QString &column, const QString &type, ColOpts options = NoOptions, const QVariant &defVal = QVariant()) const;
 
 private:

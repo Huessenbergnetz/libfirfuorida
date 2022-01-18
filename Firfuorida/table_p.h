@@ -30,7 +30,10 @@ public:
     QString queryString() const;
 
     Migrator::DatabaseType dbType() const;
+    QString dbTypeToStr() const;
     QVersionNumber dbVersion() const;
+    Migrator::DatabaseFeatures dbFeatures() const;
+    bool isDbFeatureAvailable(Migrator::DatabaseFeatures dbFeatures) const;
 
     QString newName;
     QString engine;

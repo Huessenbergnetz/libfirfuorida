@@ -162,7 +162,7 @@ void MigrationTest::testTinyCols()
     QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("id"), QStringLiteral("tinyint"), MigrationTestObject::PrimaryKey|MigrationTestObject::AutoIncrement|MigrationTestObject::Unsigned));
     QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyIntCol"), QStringLiteral("tinyint"), MigrationTestObject::Unique));
     QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyBlobCol"), QStringLiteral("tinyblob"), MigrationTestObject::Nullable));
-    if (dbSupportsDefValOnTextAndBlob()) {
+    if (migrator->isDbFeatureAvailable(Firfuorida::Migrator::DefValOnText)) {
         QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyTextCol"), QStringLiteral("tinytext"), MigrationTestObject::NoOptions, QStringLiteral("dummer schiss")));
     } else {
         QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyTextCol"), QStringLiteral("tinytext"), MigrationTestObject::NoOptions));
@@ -178,7 +178,7 @@ void MigrationTest::testMigration()
     QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("id"), QStringLiteral("tinyint"), MigrationTestObject::PrimaryKey|MigrationTestObject::AutoIncrement|MigrationTestObject::Unsigned));
     QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyIntCol"), QStringLiteral("tinyint"), MigrationTestObject::Unique));
     QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyBlobCol"), QStringLiteral("tinyblob"), MigrationTestObject::Nullable));
-    if (dbSupportsDefValOnTextAndBlob()) {
+    if (m_testmigrator->isDbFeatureAvailable(Firfuorida::Migrator::DefValOnBlob)) {
         QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyTextCol"), QStringLiteral("tinytext"), MigrationTestObject::NoOptions, QStringLiteral("dummer schiss")));
     } else {
         QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyTextCol"), QStringLiteral("tinytext"), MigrationTestObject::NoOptions));

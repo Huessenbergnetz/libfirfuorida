@@ -187,9 +187,24 @@ Migrator::DatabaseType Migration::dbType() const
     return qobject_cast<Migrator*>(parent())->dbType();
 }
 
+QString Migration::dbTypeToStr() const
+{
+    return qobject_cast<Migrator*>(parent())->dbTypeToStr();
+}
+
 QVersionNumber Migration::dbVersion() const
 {
     return qobject_cast<Migrator*>(parent())->dbVersion();
+}
+
+Migrator::DatabaseFeatures Migration::dbFeatures() const
+{
+    return qobject_cast<Migrator*>(parent())->dbFeatures();
+}
+
+bool Migration::isDbFeatureAvailable(Migrator::DatabaseFeatures dbFeatures) const
+{
+    return qobject_cast<Migrator*>(parent())->isDbFeatureAvailable(dbFeatures);
 }
 
 #include "moc_migration.cpp"

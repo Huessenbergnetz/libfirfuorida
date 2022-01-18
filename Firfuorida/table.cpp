@@ -65,12 +65,36 @@ Migrator::DatabaseType TablePrivate::dbType() const
     return migrator->dbType();
 }
 
+QString TablePrivate::dbTypeToStr() const
+{
+    Q_Q(const Table);
+    auto migration = qobject_cast<Migration*>(q->parent());
+    auto migrator = qobject_cast<Migrator*>(migration->parent());
+    return migrator->dbTypeToStr();
+}
+
 QVersionNumber TablePrivate::dbVersion() const
 {
     Q_Q(const Table);
     auto migration = qobject_cast<Migration*>(q->parent());
     auto migrator = qobject_cast<Migrator*>(migration->parent());
     return migrator->dbVersion();
+}
+
+Migrator::DatabaseFeatures TablePrivate::dbFeatures() const
+{
+    Q_Q(const Table);
+    auto migration = qobject_cast<Migration*>(q->parent());
+    auto migrator = qobject_cast<Migrator*>(migration->parent());
+    return migrator->dbFeatures();
+}
+
+bool TablePrivate::isDbFeatureAvailable(Migrator::DatabaseFeatures dbFeatures) const
+{
+    Q_Q(const Table);
+    auto migration = qobject_cast<Migration*>(q->parent());
+    auto migrator = qobject_cast<Migrator*>(migration->parent());
+    return migrator->isDbFeatureAvailable(dbFeatures);
 }
 
 Table::Table(Firfuorida::Migration *parent) : QObject(parent), dptr(new TablePrivate)
