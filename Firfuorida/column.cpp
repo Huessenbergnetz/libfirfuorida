@@ -18,130 +18,195 @@ using namespace Firfuorida;
 QString ColumnPrivate::typeString() const
 {
     QString str;
-    switch(type) {
-    case TinyInt:
-        str = QStringLiteral("TINYINT");
-        break;
-    case SmallInt:
-        str = QStringLiteral("SMALLINT");
-        break;
-    case MediumInt:
-        str = QStringLiteral("MEDIUMINT");
-        break;
-    case Int:
-        str = QStringLiteral("INT");
-        break;
-    case BigInt:
-        str = QStringLiteral("BIGINT");
-        break;
-    case Decimal:
-        str = QStringLiteral("DECIMAL") + QLatin1Char('(') + QString::number(precision) + QLatin1Char(',') + QString::number(scale) + QLatin1Char(')');
-        break;
-    case Numeric:
-        str = QStringLiteral("NUMERIC") + QLatin1Char('(') + QString::number(precision) + QLatin1Char(',') + QString::number(scale) + QLatin1Char(')');
-        break;
-    case Float:
-        str = QStringLiteral("FLOAT") + QLatin1Char('(') + QString::number(precision) + QLatin1Char(',') + QString::number(scale) + QLatin1Char(')');
-        break;
-    case Double:
-        str = QStringLiteral("DOUBLE") + QLatin1Char('(') + QString::number(precision) + QLatin1Char(',') + QString::number(scale) + QLatin1Char(')');
-        break;
-    case Bit:
-        str = QStringLiteral("BIT");
-        break;
-    case Date:
-        str = QStringLiteral("DATE");
-        break;
-    case DateTime:
-        str = QStringLiteral("DATETIME");
-        break;
-    case Timestamp:
-        str = QStringLiteral("TIMESTAMP");
-        break;
-    case Time:
-        str = QStringLiteral("TIME");
-        break;
-    case Year:
-        str = QStringLiteral("YEAR");
-        break;
-    case Binary:
-        str = QStringLiteral("BINARY") + QLatin1Char('(') + QString::number(length) + QLatin1Char(')');
-        break;
-    case VarBinary:
-        str = QStringLiteral("VARBINARY") + QLatin1Char('(') + QString::number(length) + QLatin1Char(')');
-        break;
-    case TinyBlob:
-        str = QStringLiteral("TINYBLOB");
-        break;
-    case Blob:
-        str = QStringLiteral("BLOB");
-        break;
-    case MediumBlob:
-        str = QStringLiteral("MEDIUMBLOB");
-        break;
-    case LongBlob:
-        str = QStringLiteral("LONGBLOB");
-        break;
-    case Char:
-        str = QStringLiteral("CHAR") + QLatin1Char('(') + QString::number(length) + QLatin1Char(')');
-        break;
-    case VarChar:
-        str = QStringLiteral("VARCHAR") + QLatin1Char('(') + QString::number(length) + QLatin1Char(')');
-        break;
-    case TinyText:
-        str = QStringLiteral("TINYTEXT");
-        break;
-    case Text:
-        str = QStringLiteral("TEXT");
-        break;
-    case MediumText:
-        str = QStringLiteral("MEDIUMTEXT");
-        break;
-    case LongText:
-        str = QStringLiteral("LONGTEXT");
-        break;
-    case Enum:
-        str = QStringLiteral("ENUM");
-        break;
-    case Set:
-        str = QStringLiteral("SET");
-        break;
-    case Boolean:
-        str = QStringLiteral("TINYINT(1)");
-        break;
-    case Key:
-        str = QStringLiteral("KEY");
-        break;
-    case FulltextIndex:
-        str = QStringLiteral("FULLTEXT INDEX");
-        break;
-    case SpatialIndex:
-        str = QStringLiteral("SPATIAL INDEX");
-        break;
-    case PrimaryKey:
-        str = QStringLiteral("PRIMARY KEY");
-        break;
-    case UniqueKey:
-        str = QStringLiteral("UNIQUE KEY");
-        break;
-    case ForeignKey:
-        str = QStringLiteral("FOREIGN KEY");
-        break;
-    }
-
-    if (type == Enum || type == Set) {
-        QStringList setList;
-        setList.reserve(enumSet.size());
-        const auto lst = enumSet;
-        for (const QString &part : lst) {
-            const QString _part = QLatin1Char('\'') + part + QLatin1Char('\'');
-            setList << _part;
+    if (dbType() == Migrator::MariaDB || dbType() == Migrator::MySQL) {
+        switch(type) {
+        case TinyInt:
+            str = QStringLiteral("TINYINT");
+            break;
+        case SmallInt:
+            str = QStringLiteral("SMALLINT");
+            break;
+        case MediumInt:
+            str = QStringLiteral("MEDIUMINT");
+            break;
+        case Int:
+            str = QStringLiteral("INT");
+            break;
+        case BigInt:
+            str = QStringLiteral("BIGINT");
+            break;
+        case Decimal:
+            str = QStringLiteral("DECIMAL") + QLatin1Char('(') + QString::number(precision) + QLatin1Char(',') + QString::number(scale) + QLatin1Char(')');
+            break;
+        case Numeric:
+            str = QStringLiteral("NUMERIC") + QLatin1Char('(') + QString::number(precision) + QLatin1Char(',') + QString::number(scale) + QLatin1Char(')');
+            break;
+        case Float:
+            str = QStringLiteral("FLOAT") + QLatin1Char('(') + QString::number(precision) + QLatin1Char(',') + QString::number(scale) + QLatin1Char(')');
+            break;
+        case Double:
+            str = QStringLiteral("DOUBLE") + QLatin1Char('(') + QString::number(precision) + QLatin1Char(',') + QString::number(scale) + QLatin1Char(')');
+            break;
+        case Bit:
+            str = QStringLiteral("BIT");
+            break;
+        case Date:
+            str = QStringLiteral("DATE");
+            break;
+        case DateTime:
+            str = QStringLiteral("DATETIME");
+            break;
+        case Timestamp:
+            str = QStringLiteral("TIMESTAMP");
+            break;
+        case Time:
+            str = QStringLiteral("TIME");
+            break;
+        case Year:
+            str = QStringLiteral("YEAR");
+            break;
+        case Binary:
+            str = QStringLiteral("BINARY") + QLatin1Char('(') + QString::number(length) + QLatin1Char(')');
+            break;
+        case VarBinary:
+            str = QStringLiteral("VARBINARY") + QLatin1Char('(') + QString::number(length) + QLatin1Char(')');
+            break;
+        case TinyBlob:
+            str = QStringLiteral("TINYBLOB");
+            break;
+        case Blob:
+            str = QStringLiteral("BLOB");
+            break;
+        case MediumBlob:
+            str = QStringLiteral("MEDIUMBLOB");
+            break;
+        case LongBlob:
+            str = QStringLiteral("LONGBLOB");
+            break;
+        case Char:
+            str = QStringLiteral("CHAR") + QLatin1Char('(') + QString::number(length) + QLatin1Char(')');
+            break;
+        case VarChar:
+            str = QStringLiteral("VARCHAR") + QLatin1Char('(') + QString::number(length) + QLatin1Char(')');
+            break;
+        case TinyText:
+            str = QStringLiteral("TINYTEXT");
+            break;
+        case Text:
+            str = QStringLiteral("TEXT");
+            break;
+        case MediumText:
+            str = QStringLiteral("MEDIUMTEXT");
+            break;
+        case LongText:
+            str = QStringLiteral("LONGTEXT");
+            break;
+        case Enum:
+            str = QStringLiteral("ENUM");
+            break;
+        case Set:
+            str = QStringLiteral("SET");
+            break;
+        case Boolean:
+            str = QStringLiteral("TINYINT(1)");
+            break;
+        case Key:
+            str = QStringLiteral("KEY");
+            break;
+        case FulltextIndex:
+            str = QStringLiteral("FULLTEXT INDEX");
+            break;
+        case SpatialIndex:
+            str = QStringLiteral("SPATIAL INDEX");
+            break;
+        case PrimaryKey:
+            str = QStringLiteral("PRIMARY KEY");
+            break;
+        case UniqueKey:
+            str = QStringLiteral("UNIQUE KEY");
+            break;
+        case ForeignKey:
+            str = QStringLiteral("FOREIGN KEY");
+            break;
         }
-        str += QLatin1Char('(') + setList.join(QStringLiteral(", ")) + QLatin1Char(')');
-    }
 
-    if (displayWidth > 0 && type < Decimal) {
-        str += QLatin1Char('(') + QString::number(displayWidth) + QLatin1Char(')');
+        if (type == Enum || type == Set) {
+            QStringList setList;
+            setList.reserve(enumSet.size());
+            const auto lst = enumSet;
+            for (const QString &part : lst) {
+                const QString _part = QLatin1Char('\'') + part + QLatin1Char('\'');
+                setList << _part;
+            }
+            str += QLatin1Char('(') + setList.join(QStringLiteral(", ")) + QLatin1Char(')');
+        }
+
+        if (displayWidth > 0 && type < Decimal) {
+            str += QLatin1Char('(') + QString::number(displayWidth) + QLatin1Char(')');
+        }
+    } else if(dbType() == Migrator::SQLite) {
+        switch(type) {
+        case TinyInt:
+        case SmallInt:
+        case MediumInt:
+        case Int:
+        case BigInt:
+            str = QStringLiteral("INTEGER");
+            break;
+        case Char:
+        case VarChar:
+        case TinyText:
+        case Text:
+        case MediumText:
+        case LongText:
+        case Binary:
+        case VarBinary:
+            str = QStringLiteral("TEXT");
+            break;
+        case TinyBlob:
+        case Blob:
+        case MediumBlob:
+        case LongBlob:
+            str = QStringLiteral("BLOB");
+            break;
+        case Float:
+        case Double:
+            str = QStringLiteral("REAL");
+            break;
+        case Bit:
+        case Decimal:
+        case Numeric:
+        case Date:
+        case DateTime:
+        case Timestamp:
+        case Time:
+        case Year:
+        case Boolean:
+            str = QStringLiteral("NUMERIC");
+            break;
+        case Enum:
+        case Set:
+            qCWarning(FIR_CORE, "%s", "ENUM and SET data types are not supported on SQLite databases.");
+            break;
+        case Key:
+            str = QStringLiteral("KEY");
+            break;
+        case FulltextIndex:
+            str = QStringLiteral("FULLTEXT INDEX");
+            break;
+        case SpatialIndex:
+            str = QStringLiteral("SPATIAL INDEX");
+            break;
+        case PrimaryKey:
+            str = QStringLiteral("PRIMARY KEY");
+            break;
+        case UniqueKey:
+            str = QStringLiteral("UNIQUE KEY");
+            break;
+        case ForeignKey:
+            str = QStringLiteral("FOREIGN KEY");
+            break;
+        }
     }
 
     return str;
@@ -219,6 +284,11 @@ QString ColumnPrivate::defValString() const
 QString ColumnPrivate::queryString() const
 {
     QString qs;
+
+    if (type == Invalid) {
+        return qs;
+    }
+
     QStringList parts;
     Q_Q(const Column);
 
@@ -429,19 +499,6 @@ Column* Column::defaultValue(const QVariant &defVal)
         if ((d->type > ColumnPrivate::VarChar && d->type < ColumnPrivate::Enum) && !d->isDbFeatureAvailable(Migrator::DefValOnText)) {
             qCWarning(FIR_CORE, "%s %s does not support DEFAULT values on TEXT type columns. \"%s\" is of type %s.", qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion().toString()), qUtf8Printable(objectName()),  qUtf8Printable(d->typeString()));
             return this;
-        }
-
-        if (d->dbType() == Migrator::MySQL) {
-            if ((d->type > ColumnPrivate::VarBinary && d->type < ColumnPrivate::Char) || (d->type > ColumnPrivate::VarChar && d->type < ColumnPrivate::Enum)) {
-                qCWarning(FIR_CORE, "MySQL does not support DEFAULT values on TEXT or BLOB type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
-                return this;
-            }
-        }
-        if ((d->dbType() == Migrator::MariaDB && d->dbVersion() < QVersionNumber(10,2,1))) {
-            if ((d->type > ColumnPrivate::VarBinary && d->type < ColumnPrivate::Char) || (d->type > ColumnPrivate::VarChar && d->type < ColumnPrivate::Enum)) {
-                qCWarning(FIR_CORE, "MariaDB before version 10.2.1 does not support DEFAULT values on TEXT and BLOB type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
-                return this;
-            }
         }
         d->defVal = defVal;
     } else {

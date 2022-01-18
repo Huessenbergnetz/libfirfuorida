@@ -29,7 +29,10 @@ QString TablePrivate::queryString() const
         const QList<Column *> cols = q->findChildren<Column *>(QString(), Qt::FindDirectChildrenOnly);
         QStringList colParts;
         for (Column *col : cols) {
-            colParts << col->d_func()->queryString();
+            const QString qs = col->d_func()->queryString();
+            if (!qs.isEmpty()) {
+                colParts << qs;
+            }
         }
         qs += colParts.join(QStringLiteral(", "));
 
@@ -524,8 +527,12 @@ Column* Table::enumCol(const QString &columnName, const QStringList &enums)
     c->setObjectName(columnName.trimmed());
     Q_D(Table);
     c->d_func()->operation = (d->operation == TablePrivate::CreateTable || d->operation == TablePrivate::CreateTableIfNotExists) ? ColumnPrivate::CreateColumn : ColumnPrivate::AddColumn;
-    c->d_func()->type = ColumnPrivate::Enum;
-    c->d_func()->enumSet = enums;
+    if (d->isDbFeatureAvailable(Migrator::EnumType)) {
+        c->d_func()->type = ColumnPrivate::Enum;
+        c->d_func()->enumSet = enums;
+    } else {
+        qCWarning(FIR_CORE, "%s %s does not support the ENUM data type. Omitting column \"%s\".", qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion().toString()), qUtf8Printable(objectName()));
+    }
     return c;
 }
 
@@ -536,8 +543,12 @@ Column* Table::set(const QString &columnName, const QStringList &setList)
     c->setObjectName(columnName.trimmed());
     Q_D(Table);
     c->d_func()->operation = (d->operation == TablePrivate::CreateTable || d->operation == TablePrivate::CreateTableIfNotExists) ? ColumnPrivate::CreateColumn : ColumnPrivate::AddColumn;
-    c->d_func()->type = ColumnPrivate::Set;
-    c->d_func()->enumSet = setList;
+    if (d->isDbFeatureAvailable(Migrator::EnumType)) {
+        c->d_func()->type = ColumnPrivate::Set;
+        c->d_func()->enumSet = setList;
+    } else {
+        qCWarning(FIR_CORE, "%s %s does not support the SET data type. Omitting column \"%s\".", qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion().toString()), qUtf8Printable(objectName()));
+    }
     return c;
 }
 

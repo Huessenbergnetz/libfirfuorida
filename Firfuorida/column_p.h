@@ -14,7 +14,8 @@ namespace Firfuorida {
 class ColumnPrivate {
 public:
     enum Type : quint8 {
-        TinyInt = 0,
+        Invalid = 0,
+        TinyInt,
         SmallInt,
         MediumInt,
         Int,
@@ -86,7 +87,7 @@ public:
     uint scale = 0;
     uint length = 255;
     uint displayWidth = 0;
-    Type type = Int;
+    Type type = Invalid;
     ColumnOperation operation = CreateColumn;
     bool _unsigned = false;
     bool _nullable = false;
