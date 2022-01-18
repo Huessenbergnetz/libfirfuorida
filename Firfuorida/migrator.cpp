@@ -61,6 +61,17 @@ void MigratorPrivate::setDbVersion()
         } else {
             qCCritical(FIR_CORE, "Failed to execute query to determine MySQL/MariaDB database version: %s", qUtf8Printable(q.lastError().text()));
         }
+    } else if (dbType == Migrator::SQLite) {
+        if (q.exec(QStringLiteral("SELECT sqlite_version()"))) {
+            if (q.next()) {
+                const QString version = q.value(0).toString();
+                dbVersion = QVersionNumber::fromString(version);
+            } else {
+                qCCritical(FIR_CORE, "%s", "Can not find database version information.");
+            }
+        } else {
+            qCCritical(FIR_CORE, "Failed to execute query to determine SQLite database version: %s", qUtf8Printable(q.lastError().text()));
+        }
     }
 }
 
@@ -109,6 +120,9 @@ bool Migrator::initDatabase()
         if (d->dbVersion >= QVersionNumber(5,7,8)) {
             d->dbFeatures |= JSONTypes;
         }
+        d->dbFeatures |= ForeignKeys;
+        d->dbFeatures |= CommentsOnColumns;
+        d->dbFeatures |= CommentsOnTables;
     }
         break;
     case MariaDB:
@@ -117,6 +131,9 @@ bool Migrator::initDatabase()
             d->dbFeatures |= DefValOnText;
             d->dbFeatures |= DefValOnBlob;
         }
+        d->dbFeatures |= ForeignKeys;
+        d->dbFeatures |= CommentsOnColumns;
+        d->dbFeatures |= CommentsOnTables;
     }
         break;
     case ODBC:
@@ -132,9 +149,19 @@ bool Migrator::initDatabase()
         d->dbFeatures |= XMLType;
         d->dbFeatures |= NetworkAddressTypes;
         d->dbFeatures |= MonetaryTypes;
+        d->dbFeatures |= ForeignKeys;
+        d->dbFeatures |= CommentsOnColumns;
+        d->dbFeatures |= CommentsOnTables;
     }
         break;
     case SQLite:
+    {
+        d->dbFeatures |= DefValOnText;
+        d->dbFeatures |= DefValOnBlob;
+        if (d->dbVersion >= QVersionNumber(3,6,19)) {
+            d->dbFeatures |= ForeignKeys;
+        }
+    }
         break;
     default:
         break;

@@ -90,6 +90,9 @@ public:
         XMLType             = 1 << 6, /**< Supports XML data types. */
         NetworkAddressTypes = 1 << 7, /**< Supports network address data types. */
         MonetaryTypes       = 1 << 8, /**< Supports monetary data types. */
+        ForeignKeys         = 1 << 9, /**< Supports foreign key constraints. */
+        CommentsOnColumns   = 1 << 10, /**< Supports comments on columns. */
+        CommentsOnTables    = 1 << 11  /**< Supports comments on tables. */
     };
     Q_DECLARE_FLAGS(DatabaseFeatures, DatabaseFeature)
     Q_FLAGS(DatabaseFeatures)
