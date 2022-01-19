@@ -20,6 +20,10 @@ QString TablePrivate::queryString() const
     if (operation == CreateTable || operation == CreateTableIfNotExists) {
         qs = QStringLiteral("CREATE TABLE ");
 
+        if (temporary) {
+            qs += QStringLiteral("TEMPORARY ");
+        }
+
         if (operation == CreateTableIfNotExists) {
             qs += QStringLiteral("IF NOT EXISTS ");
         }
@@ -139,6 +143,12 @@ void Table::setComment(const QString &comment)
         _comment = _comment.left(2048);
     }
     d->comment = _comment;
+}
+
+void Table::setIsTemporary(bool isTemporary)
+{
+    Q_D(Table);
+    d->temporary = isTemporary;
 }
 
 Column* Table::tinyIncrements(const QString &columnName)

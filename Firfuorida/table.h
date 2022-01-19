@@ -61,6 +61,10 @@ public:
      * \note The maximum size for a column comment on MySQL/MariaDB is \c 2048 characters.
      */
     void setComment(const QString &comment);
+    /*!
+     * \brief Marks the table as temporary if \a isTemporary is set to \c true.
+     */
+    void setIsTemporary(bool isTemporary = true);
 
     /*!
      * \brief Creates/modifies an unsigned tiny integer primary key column that auto increments with given \a columnName and returns a pointer to the Column object.
