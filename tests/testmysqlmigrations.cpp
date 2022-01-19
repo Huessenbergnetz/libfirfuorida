@@ -1,30 +1,68 @@
-/*
- * SPDX-FileCopyrightText: (C) 2019-2021 Matthias Fehring / www.huessenbergnetz.de
- * SPDX-License-Identifier: LGPL-3.0-or-later
- */
-
-#include "migrationtestobject.h"
+#include "testmigrations.h"
+#include "../Firfuorida/migration.h"
+#include "../Firfuorida/migrator.h"
+#include <QObject>
+#include <QTest>
 #include <QDebug>
-#include <QFileInfo>
-#include <QDateTime>
+#include <QProcess>
+#include <QTemporaryDir>
+#include <QTemporaryFile>
 #include <QSqlDatabase>
-#include <QSqlQuery>
 #include <QSqlError>
+#include <QSqlQuery>
 #include <QStandardPaths>
 #include <QRegularExpression>
-#include <QRegularExpressionMatch>
 
-MigrationTestObject::MigrationTestObject(QObject *parent) : QObject(parent)
+#include "migrations/m20220119t181049_tiny.h"
+#include "migrations/m20220119t181249_small.h"
+#include "migrations/m20220119t181401_medium.h"
+#include "migrations/m20220119t181501_big.h"
+
+#define DB_NAME "migtestdb"
+#define DB_USER "migtester"
+#define DB_PASS "lalalala1"
+#define DB_CONN "migtests"
+
+class TestMySqlMigrations : public TestMigrations
 {
+    Q_OBJECT
+public:
+    TestMySqlMigrations(QObject *parent = nullptr) : TestMigrations(parent) {}
+    ~TestMySqlMigrations() override = default;
 
-}
+private Q_SLOTS:
+    void initTestCase();
+    void cleanupTestCase();
 
-MigrationTestObject::~MigrationTestObject()
-{
+    void testTinyCols();
+    void testMigration();
 
-}
+private:
+    Firfuorida::Migrator *m_testmigrator = nullptr;
+    QTemporaryDir m_mysqlWorkingDir;
+    QTemporaryDir m_mysqlDataDir;
+    QTemporaryDir m_mysqlSocketDir;
+    QTemporaryDir m_mysqlLogDir;
+    QTemporaryFile m_mysqlConfigFile;
+    QProcess m_mysqlProcess;
+    const int m_mysqlPort{46000};
 
-bool MigrationTestObject::startMysql()
+    bool startDb();
+    bool stopDb();
+    bool createDatabase(const QString &name, const QString &user, const QString &password);
+
+    QString mysqlSocketPath() const;
+
+    bool tableExists(const QString &tableName) const;
+
+    bool checkTableEngine(const QString &tableName, const QString &engine) const;
+    bool checkTableCollation(const QString &tableName, const QString &collation) const;
+    bool checkTableComment(const QString &tableName, const QString &comment) const;
+
+    bool checkColumn(const QString &table, const QString &column, const QString &type, ColOpts options = NoOptions, const QVariant &defVal = QVariant()) const;
+};
+
+bool TestMySqlMigrations::startDb()
 {
     const QString mysqlExecutable = QStandardPaths::findExecutable(QStringLiteral("mysql"));
     if (mysqlExecutable.isEmpty()) {
@@ -40,21 +78,23 @@ bool MigrationTestObject::startMysql()
 
             QRegularExpression re;
             if (versionLine.contains(QLatin1String("mariadb"), Qt::CaseInsensitive)) {
-                m_dbType = Firfuorida::Migrator::MariaDB;
+                setDbType(Firfuorida::Migrator::MariaDB);
                 re.setPattern(QStringLiteral(".*\\s+(\\d+\\.\\d+\\.\\d+)-[Mm]aria[Dd][Bb]"));
             } else {
-                m_dbType = Firfuorida::Migrator::MySQL;
+                setDbType(Firfuorida::Migrator::MySQL);
                 re.setPattern(QStringLiteral(".*Ver\\s+(\\d+\\.\\d+\\.\\d+)"));
             }
 
             QRegularExpressionMatch match = re.match(versionLine);
             if (match.hasMatch()) {
-                m_dbVersion = QVersionNumber::fromString(match.captured(1));
-                if (m_dbVersion.isNull()) {
+                auto _dbVersion = QVersionNumber::fromString(match.captured(1));
+                if (_dbVersion.isNull()) {
                     qCritical() << "Can not determine database version.";
                     return false;
+                } else {
+                    setDbVersion(_dbVersion);
                 }
-                qDebug() << "Start initializing" << (m_dbType == Firfuorida::Migrator::MariaDB ? "MariaDB" : "MySQL") << "server version" << m_dbVersion.toString();
+                qDebug() << "Start initializing" << (dbType() == Firfuorida::Migrator::MariaDB ? "MariaDB" : "MySQL") << "server version" << dbVersion().toString();
             } else {
                 qCritical() << "Can not determine MariaDB database version.";
                 return false;
@@ -102,10 +142,10 @@ bool MigrationTestObject::startMysql()
         mysqlConfOut << "[mysqld]" << '\n';
         mysqlConfOut << "bind-address=127.0.0.1" << '\n';
         mysqlConfOut << "log-error=" << m_mysqlLogDir.filePath(QStringLiteral("mysql.log")) << '\n';
-        if (m_dbType != Firfuorida::Migrator::MySQL || (m_dbType == Firfuorida::Migrator::MySQL && m_dbVersion < QVersionNumber(8,0,0))) {
+        if (dbType() != Firfuorida::Migrator::MySQL || (dbType() == Firfuorida::Migrator::MySQL && dbVersion() < QVersionNumber(8,0,0))) {
             mysqlConfOut << "innodb_file_format=Barracuda" << '\n';
         }
-        if (m_dbType == Firfuorida::Migrator::MySQL && m_dbVersion >= QVersionNumber(8,0,0)) {
+        if (dbType() == Firfuorida::Migrator::MySQL && dbVersion() >= QVersionNumber(8,0,0)) {
             mysqlConfOut << "basedir=" << m_mysqlDataDir.path() << '\n';
             mysqlConfOut << "default_authentication_plugin=mysql_native_password" << '\n';
         }
@@ -120,7 +160,7 @@ bool MigrationTestObject::startMysql()
     const QString mysqlDefaultsArg = QStringLiteral("--defaults-file=") + m_mysqlConfigFile.fileName();
     QStringList mysqlInstallArgs{mysqlDefaultsArg};
 
-    const QString mysqlDexecName = m_dbType == Firfuorida::Migrator::MySQL ? QStringLiteral("mysqld") : QStringLiteral("mariadbd");
+    const QString mysqlDexecName = dbType() == Firfuorida::Migrator::MySQL ? QStringLiteral("mysqld") : QStringLiteral("mariadbd");
     QString mysqlServerCommand = QStandardPaths::findExecutable(mysqlDexecName, QStringList({QStringLiteral("/usr/sbin")}));
     if (mysqlServerCommand.isEmpty()) {
         mysqlServerCommand = QStandardPaths::findExecutable(mysqlDexecName);
@@ -133,7 +173,7 @@ bool MigrationTestObject::startMysql()
 
     QString dbInitCommand = QStandardPaths::findExecutable(QStringLiteral("mysql_install_db"));
 
-    if (m_dbType == Firfuorida::Migrator::MySQL && m_dbVersion > QVersionNumber(5,7,6)) {
+    if (dbType() == Firfuorida::Migrator::MySQL && dbVersion() > QVersionNumber(5,7,6)) {
         mysqlInstallArgs.append(QStringLiteral("--initialize-insecure"));
         dbInitCommand = mysqlServerCommand;
     } else {
@@ -188,7 +228,7 @@ bool MigrationTestObject::startMysql()
         return false;
     }
 
-    qDebug() << "Successfully initialized" << (m_dbType == Firfuorida::Migrator::MariaDB ? "MariaDB" : "MySQL") << "server version" << m_dbVersion.toString();
+    qDebug() << "Successfully initialized" << (dbType() == Firfuorida::Migrator::MariaDB ? "MariaDB" : "MySQL") << "server version" << dbVersion().toString();
     qDebug() << "Config File:" << m_mysqlConfigFile.fileName();
     qDebug() << "Base Directory:" << m_mysqlDataDir.path();
     qDebug() << "Data Directory:" << m_mysqlDataDir.path() + "/data";
@@ -198,13 +238,13 @@ bool MigrationTestObject::startMysql()
     return true;
 }
 
-bool MigrationTestObject::stopMysql()
+bool TestMySqlMigrations::stopDb()
 {
     m_mysqlProcess.terminate();
     return m_mysqlProcess.exitCode() == 0;
 }
 
-bool MigrationTestObject::createDatabase(const QString &name, const QString &user, const QString &password)
+bool TestMySqlMigrations::createDatabase(const QString &name, const QString &user, const QString &password)
 {
     const QString initConName = name + QStringLiteral("-initCon");
     {
@@ -239,17 +279,17 @@ bool MigrationTestObject::createDatabase(const QString &name, const QString &use
         }
 
         db.close();
-        m_dbName = name;
+        setDbName(name);
     }
 
     QSqlDatabase::removeDatabase(initConName);
 
     {
-        m_dbRootConn = name + QStringLiteral("-rootCon");
-        QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QMYSQL"), m_dbRootConn);
+        setDbRootConn(name + QStringLiteral("-rootCon"));
+        QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QMYSQL"), dbRootConn());
         db.setDatabaseName(QStringLiteral("information_schema"));
         db.setUserName(QStringLiteral("root"));
-        db.setConnectOptions(QStringLiteral("UNIX_SOCKET=%1").arg(m_mysqlSocketDir.filePath(QStringLiteral("mysql.sock"))));
+        db.setConnectOptions(QStringLiteral("UNIX_SOCKET=%1").arg(mysqlSocketPath()));
         if (!db.open()) {
             qCritical() << "Failed to establish database connection:" << db.lastError().text();
             m_mysqlLogDir.setAutoRemove(false);
@@ -260,16 +300,16 @@ bool MigrationTestObject::createDatabase(const QString &name, const QString &use
     return true;
 }
 
-QString MigrationTestObject::mysqlSocketPath() const
+QString TestMySqlMigrations::mysqlSocketPath() const
 {
     return m_mysqlSocketDir.filePath(QStringLiteral("mysql.sock"));
 }
 
-bool MigrationTestObject::tableExists(const QString &tableName) const
+bool TestMySqlMigrations::tableExists(const QString &tableName) const
 {
-    QSqlQuery q(QSqlDatabase::database(m_dbRootConn));
+    QSqlQuery q(QSqlDatabase::database(dbRootConn()));
     if (q.prepare(QStringLiteral("SELECT COUNT(*) FROM TABLES WHERE TABLE_SCHEMA = :db AND TABLE_NAME = :tableName"))) {
-        q.bindValue(QStringLiteral(":db"), m_dbName);
+        q.bindValue(QStringLiteral(":db"), dbName());
         q.bindValue(QStringLiteral(":tableName"), tableName);
         if (q.exec() && q.next() && q.value(0).toInt() == 1) {
             return true;
@@ -279,11 +319,11 @@ bool MigrationTestObject::tableExists(const QString &tableName) const
     return false;
 }
 
-bool MigrationTestObject::checkTableEngine(const QString &tableName, const QString &engine) const
+bool TestMySqlMigrations::checkTableEngine(const QString &tableName, const QString &engine) const
 {
-    QSqlQuery q(QSqlDatabase::database(m_dbRootConn));
+    QSqlQuery q(QSqlDatabase::database(dbRootConn()));
     if (q.prepare(QStringLiteral("SELECT ENGINE FROM TABLES WHERE TABLE_SCHEMA = :db AND TABLE_NAME = :tableName"))) {
-        q.bindValue(QStringLiteral(":db"), m_dbName);
+        q.bindValue(QStringLiteral(":db"), dbName());
         q.bindValue(QStringLiteral(":tableName"), tableName);
         if (q.exec() && q.next()) {
             return q.value(0).toString() == engine;
@@ -293,11 +333,11 @@ bool MigrationTestObject::checkTableEngine(const QString &tableName, const QStri
     return false;
 }
 
-bool MigrationTestObject::checkTableCollation(const QString &tableName, const QString &collation) const
+bool TestMySqlMigrations::checkTableCollation(const QString &tableName, const QString &collation) const
 {
-    QSqlQuery q(QSqlDatabase::database(m_dbRootConn));
+    QSqlQuery q(QSqlDatabase::database(dbRootConn()));
     if (q.prepare(QStringLiteral("SELECT TABLE_COLLATION FROM TABLES WHERE TABLE_SCHEMA = :db AND TABLE_NAME = :tableName"))) {
-        q.bindValue(QStringLiteral(":db"), m_dbName);
+        q.bindValue(QStringLiteral(":db"), dbName());
         q.bindValue(QStringLiteral(":tableName"), tableName);
         if (q.exec() && q.next()) {
             return q.value(0).toString() == collation;
@@ -307,11 +347,11 @@ bool MigrationTestObject::checkTableCollation(const QString &tableName, const QS
     return false;
 }
 
-bool MigrationTestObject::checkTableComment(const QString &tableName, const QString &comment) const
+bool TestMySqlMigrations::checkTableComment(const QString &tableName, const QString &comment) const
 {
-    QSqlQuery q(QSqlDatabase::database(m_dbRootConn));
+    QSqlQuery q(QSqlDatabase::database(dbRootConn()));
     if (q.prepare(QStringLiteral("SELECT TABLE_COMMENT FROM TABLES WHERE TABLE_SCHEMA = :db AND TABLE_NAME = :tableName"))) {
-        q.bindValue(QStringLiteral(":db"), m_dbName);
+        q.bindValue(QStringLiteral(":db"), dbName());
         q.bindValue(QStringLiteral(":tableName"), tableName);
         if (q.exec() && q.next()) {
             return q.value(0).toString() == comment;
@@ -321,11 +361,11 @@ bool MigrationTestObject::checkTableComment(const QString &tableName, const QStr
     return false;
 }
 
-bool MigrationTestObject::checkColumn(const QString &table, const QString &column, const QString &type, ColOpts options, const QVariant &defVal) const
+bool TestMySqlMigrations::checkColumn(const QString &table, const QString &column, const QString &type, ColOpts options, const QVariant &defVal) const
 {
-    QSqlQuery q(QSqlDatabase::database(m_dbRootConn));
+    QSqlQuery q(QSqlDatabase::database(dbRootConn()));
     if (q.prepare(QStringLiteral("SELECT DATA_TYPE, IS_NULLABLE, COLUMN_KEY, EXTRA, COLUMN_TYPE, COLUMN_DEFAULT FROM COLUMNS WHERE TABLE_SCHEMA = :db AND TABLE_NAME = :table AND COLUMN_NAME = :column"))) {
-        q.bindValue(QStringLiteral(":db"), m_dbName);
+        q.bindValue(QStringLiteral(":db"), dbName());
         q.bindValue(QStringLiteral(":table"), table);
         q.bindValue(QStringLiteral(":column"), column);
         if (q.exec() && q.next()) {
@@ -384,3 +424,85 @@ bool MigrationTestObject::checkColumn(const QString &table, const QString &colum
 
     return false;
 }
+
+void TestMySqlMigrations::initTestCase()
+{
+    if (!startDb()) {
+        QFAIL("Failed to start MySQL.");
+    }
+    if (!createDatabase(QStringLiteral(DB_NAME), QStringLiteral(DB_USER), QStringLiteral(DB_PASS))) {
+        QFAIL("Failed to create database.");
+    }
+
+    m_testmigrator = new Firfuorida::Migrator(QStringLiteral(DB_CONN), QStringLiteral("migrations"), this);
+    new M20220119t181049_Tiny(m_testmigrator);
+    new M20220119T181249_Small(m_testmigrator);
+    new M20220119T181401_Medium(m_testmigrator);
+    new M20220119T181501_Big(m_testmigrator);
+
+    {
+        QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QMYSQL"), QStringLiteral(DB_CONN));
+        db.setDatabaseName(QStringLiteral(DB_NAME));
+        db.setUserName(QStringLiteral(DB_USER));
+        db.setPassword(QStringLiteral(DB_PASS));
+        db.setHostName(QStringLiteral("127.0.0.1"));
+        db.setPort(m_mysqlPort);
+        if (!db.open()) {
+            qDebug() << db.lastError().text();
+            QFAIL("Failed to establish database connection.");
+        }
+    }
+}
+
+void TestMySqlMigrations::cleanupTestCase()
+{
+    QSqlDatabase::removeDatabase(QStringLiteral(DB_CONN));
+}
+
+void TestMySqlMigrations::testTinyCols()
+{
+    auto migrator = new Firfuorida::Migrator(QStringLiteral(DB_CONN), QStringLiteral("migrations"), this);
+    new M20220119t181049_Tiny(migrator);
+    QVERIFY(migrator->migrate());
+    QVERIFY(tableExists(QStringLiteral("tiny")));
+    QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("id"), QStringLiteral("tinyint"), TestMigrations::PrimaryKey|TestMigrations::AutoIncrement|TestMigrations::Unsigned));
+    QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyIntCol"), QStringLiteral("tinyint"), TestMigrations::Unique));
+    QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyBlobCol"), QStringLiteral("tinyblob"), TestMigrations::Nullable));
+    if (migrator->isDbFeatureAvailable(Firfuorida::Migrator::DefValOnText)) {
+        QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyTextCol"), QStringLiteral("tinytext"), TestMigrations::NoOptions, QStringLiteral("dummer schiss")));
+    } else {
+        QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyTextCol"), QStringLiteral("tinytext"), TestMigrations::NoOptions));
+    }
+    QVERIFY(migrator->rollback());
+    QVERIFY(!tableExists(QStringLiteral("tiny")));
+}
+
+void TestMySqlMigrations::testMigration()
+{
+    QVERIFY(m_testmigrator->migrate());
+    QVERIFY(tableExists(QStringLiteral("tiny")));
+    QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("id"), QStringLiteral("tinyint"), TestMigrations::PrimaryKey|TestMigrations::AutoIncrement|TestMigrations::Unsigned));
+    QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyIntCol"), QStringLiteral("tinyint"), TestMigrations::Unique));
+    QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyBlobCol"), QStringLiteral("tinyblob"), TestMigrations::Nullable));
+    if (m_testmigrator->isDbFeatureAvailable(Firfuorida::Migrator::DefValOnBlob)) {
+        QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyTextCol"), QStringLiteral("tinytext"), TestMigrations::NoOptions, QStringLiteral("dummer schiss")));
+    } else {
+        QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyTextCol"), QStringLiteral("tinytext"), TestMigrations::NoOptions));
+    }
+    QVERIFY(tableExists(QStringLiteral("small")));
+    QVERIFY(checkColumn(QStringLiteral("small"), QStringLiteral("id"), QStringLiteral("smallint"), TestMigrations::PrimaryKey|TestMigrations::AutoIncrement|TestMigrations::Unsigned));
+    QVERIFY(tableExists(QStringLiteral("medium")));
+    QVERIFY(checkColumn(QStringLiteral("medium"), QStringLiteral("id"), QStringLiteral("int"), TestMigrations::PrimaryKey|TestMigrations::AutoIncrement|TestMigrations::Unsigned));
+    QVERIFY(tableExists(QStringLiteral("big")));
+    QVERIFY(checkColumn(QStringLiteral("big"), QStringLiteral("id"), QStringLiteral("bigint"), TestMigrations::PrimaryKey|TestMigrations::AutoIncrement|TestMigrations::Unsigned));
+//    QVERIFY(m_testmigrator->rollback(1));
+//    QVERIFY(!tableExists(QStringLiteral("small")));
+//    QVERIFY(tableExists(QStringLiteral("tiny")));
+//    QVERIFY(m_testmigrator->rollback());
+//    QVERIFY(!tableExists(QStringLiteral("small")));
+//    QVERIFY(!tableExists(QStringLiteral("tiny")));
+}
+
+QTEST_MAIN(TestMySqlMigrations)
+
+#include "testmysqlmigrations.moc"
