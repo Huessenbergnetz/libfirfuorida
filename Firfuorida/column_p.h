@@ -64,6 +64,8 @@ public:
     QString queryString() const;
     QString defValString() const;
 
+    QString schemaAndColName() const;
+
     Migrator::DatabaseType dbType() const;
     QString dbTypeToStr() const;
     QVersionNumber dbVersion() const;

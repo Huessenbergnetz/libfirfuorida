@@ -18,11 +18,7 @@ QString TablePrivate::queryString() const
     Q_Q(const Table);
 
     if (operation == CreateTable || operation == CreateTableIfNotExists) {
-        qs = QStringLiteral("CREATE TABLE ");
-
-        if (temporary) {
-            qs += QStringLiteral("TEMPORARY ");
-        }
+        qs = temporary ? QStringLiteral("CREATE TEMPORARY TABLE ") : QStringLiteral("CREATE TABLE ");
 
         if (operation == CreateTableIfNotExists) {
             qs += QStringLiteral("IF NOT EXISTS ");
@@ -118,31 +114,51 @@ Table::~Table()
 void Table::setEngine(const QString &engine)
 {
     Q_D(Table);
-    d->engine = engine;
+    if (d->dbType() != Migrator::SQLite) {
+        d->engine = engine;
+    } else {
+        qCWarning(FIR_CORE, "%s %s does not support setting an ENGINE for tables. Tried to set %s as ENGINE for \"%s\".", qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion().toString()), qUtf8Printable(engine), qUtf8Printable(objectName()));
+        d->engine.clear();
+    }
 }
 
 void Table::setCharset(const QString &charset)
 {
     Q_D(Table);
-    d->charset = charset;
+    if (d->dbType() != Migrator::SQLite) {
+        d->charset = charset;
+    } else {
+        qCWarning(FIR_CORE, "%s %s does not support setting an default CHARSET for tables. Tried to set %s as CHARSET for \"%s\".", qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion().toString()), qUtf8Printable(charset), qUtf8Printable(objectName()));
+        d->charset.clear();
+    }
 }
 
 void Table::setCollation(const QString &collation)
 {
     Q_D(Table);
-    d->collation = collation;
+    if (d->dbType() != Migrator::SQLite) {
+        d->collation = collation;
+    } else {
+        qCWarning(FIR_CORE, "%s %s does not support setting an default COLLATION for tables. Tried to set %s as CHARSET for \"%s\".", qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion().toString()), qUtf8Printable(collation), qUtf8Printable(objectName()));
+        d->collation.clear();
+    }
 }
 
 void Table::setComment(const QString &comment)
 {
     Q_D(Table);
-    QString _comment = comment;
-    _comment.replace(QLatin1Char('\''), QLatin1String("\\'"));
-    if (_comment.size() > 2048) {
-        qCWarning(FIR_CORE, "setComment() / COMMENT can not exceed 2048 characters. Your comment is %i characters long. It will be truncated.", _comment.size());
-        _comment = _comment.left(2048);
+    if (d->isDbFeatureAvailable(Migrator::CommentsOnTables)) {
+        QString _comment = comment;
+        _comment.replace(QLatin1Char('\''), QLatin1String("\\'"));
+        if (_comment.size() > 2048) {
+            qCWarning(FIR_CORE, "setComment() / COMMENT can not exceed 2048 characters. Your comment is %i characters long. It will be truncated.", _comment.size());
+            _comment = _comment.left(2048);
+        }
+        d->comment = _comment;
+    } else {
+        qCWarning(FIR_CORE, "Table %s: Setting comments on tables is not supported by %s %s.", qUtf8Printable(objectName()), qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion().toString()));
+        d->comment.clear();
     }
-    d->comment = _comment;
 }
 
 void Table::setIsTemporary(bool isTemporary)
@@ -553,7 +569,7 @@ Column* Table::set(const QString &columnName, const QStringList &setList)
     c->setObjectName(columnName.trimmed());
     Q_D(Table);
     c->d_func()->operation = (d->operation == TablePrivate::CreateTable || d->operation == TablePrivate::CreateTableIfNotExists) ? ColumnPrivate::CreateColumn : ColumnPrivate::AddColumn;
-    if (d->isDbFeatureAvailable(Migrator::EnumType)) {
+    if (d->isDbFeatureAvailable(Migrator::SetType)) {
         c->d_func()->type = ColumnPrivate::Set;
         c->d_func()->enumSet = setList;
     } else {

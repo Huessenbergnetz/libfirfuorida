@@ -128,6 +128,8 @@ QString ColumnPrivate::typeString() const
         case ForeignKey:
             str = QStringLiteral("FOREIGN KEY");
             break;
+        case Invalid:
+            return str;
         }
 
         if (type == Enum || type == Set) {
@@ -191,12 +193,6 @@ QString ColumnPrivate::typeString() const
         case Key:
             str = QStringLiteral("KEY");
             break;
-        case FulltextIndex:
-            str = QStringLiteral("FULLTEXT INDEX");
-            break;
-        case SpatialIndex:
-            str = QStringLiteral("SPATIAL INDEX");
-            break;
         case PrimaryKey:
             str = QStringLiteral("PRIMARY KEY");
             break;
@@ -206,6 +202,10 @@ QString ColumnPrivate::typeString() const
         case ForeignKey:
             str = QStringLiteral("FOREIGN KEY");
             break;
+        case FulltextIndex:
+        case SpatialIndex:
+        case Invalid:
+            return str;
         }
     }
 
@@ -216,69 +216,80 @@ QString ColumnPrivate::defValString() const
 {
     QString str;
 
-    if (type < Bit) { // numeric columns
-        str = defVal.toString();
-    } else if (type == Bit) {
-        if (defVal.canConvert<QBitArray>()) {
-            const QBitArray ba = defVal.toBitArray();
-            if (!ba.isEmpty()) {
-                int length = ba.size();
-                if (length > 63) {
-                    length = 63;
+    if (dbType() == Migrator::MySQL || Migrator::MariaDB) {
+        if (type < Bit) { // numeric columns
+            str = defVal.toString();
+        } else if (type == Bit) {
+            if (defVal.canConvert<QBitArray>()) {
+                const QBitArray ba = defVal.toBitArray();
+                if (!ba.isEmpty()) {
+                    int length = ba.size();
+                    if (length > 63) {
+                        length = 63;
+                    }
+                    str.reserve(length + 4);
+                    str[0] = QLatin1Char('\'');
+                    str[1] = QLatin1Char('0');
+                    str[2] = QLatin1Char('b');
+                    for (int i = 0; i < length; ++i) {
+                        str[i+3] = ba.at(i) ? QLatin1Char('1') : QLatin1Char('0');
+                    }
+                    str[length + 3] = QLatin1Char('\'');
                 }
-                str.reserve(length + 4);
-                str[0] = QLatin1Char('\'');
-                str[1] = QLatin1Char('0');
-                str[2] = QLatin1Char('b');
-                for (int i = 0; i < length; ++i) {
-                    str[i+3] = ba.at(i) ? QLatin1Char('1') : QLatin1Char('0');
+            } else {
+                if (defVal.canConvert<QString>()) {
+                    str = QLatin1Char('\'') + defVal.toString() + QLatin1Char('\'');
                 }
-                str[length + 3] = QLatin1Char('\'');
             }
-        } else {
+        } else if (type == Date) {
+            if (defVal.canConvert<QDate>()) {
+                str = QLatin1Char('\'') + defVal.toDate().toString(Qt::ISODate) + QLatin1Char('\'');
+            } else {
+                if (defVal.canConvert<QString>()) {
+                    str = QLatin1Char('\'') + defVal.toString() + QLatin1Char('\'');
+                }
+            }
+        } else if (type == DateTime || type == Timestamp) {
+            if (defVal.type() == QMetaType::QDateTime) {
+                str = QLatin1Char('\'') + defVal.toDateTime().toString(QStringLiteral("yyyy-MM-DD HH:mm:ss.zzz")) + QLatin1Char('\'');
+            } else {
+                if (defVal.canConvert<QString>()) {
+                    str = QLatin1Char('\'') + defVal.toString() + QLatin1Char('\'');
+                }
+            }
+        } else if (type == Time) {
+            if (defVal.canConvert<QTime>()) {
+                str = QLatin1Char('\'') + defVal.toTime().toString(Qt::ISODateWithMs) + QLatin1Char('\'');
+            } else {
+                if (defVal.canConvert<QString>()) {
+                    str = QLatin1Char('\'') + defVal.toString() + QLatin1Char('\'');
+                }
+            }
+        } else if (type == Year) {
             if (defVal.canConvert<QString>()) {
                 str = QLatin1Char('\'') + defVal.toString() + QLatin1Char('\'');
             }
-        }
-    } else if (type == Date) {
-        if (defVal.canConvert<QDate>()) {
-            str = QLatin1Char('\'') + defVal.toDate().toString(Qt::ISODate) + QLatin1Char('\'');
-        } else {
+        } else if (type > Year && type < Enum) { // binay and text columns
             if (defVal.canConvert<QString>()) {
                 str = QLatin1Char('\'') + defVal.toString() + QLatin1Char('\'');
             }
-        }
-    } else if (type == DateTime || type == Timestamp) {
-        if (defVal.type() == QMetaType::QDateTime) {
-            str = QLatin1Char('\'') + defVal.toDateTime().toString(QStringLiteral("yyyy-MM-DD HH:mm:ss.zzz")) + QLatin1Char('\'');
-        } else {
-            if (defVal.canConvert<QString>()) {
-                str = QLatin1Char('\'') + defVal.toString() + QLatin1Char('\'');
+        } else if (type == Boolean) {
+            if (defVal.canConvert<bool>()) {
+                str = defVal.toBool() ? QLatin1Char('1') : QLatin1Char('0');
             }
         }
-    } else if (type == Time) {
-        if (defVal.canConvert<QTime>()) {
-            str = QLatin1Char('\'') + defVal.toTime().toString(Qt::ISODateWithMs) + QLatin1Char('\'');
-        } else {
-            if (defVal.canConvert<QString>()) {
-                str = QLatin1Char('\'') + defVal.toString() + QLatin1Char('\'');
-            }
-        }
-    } else if (type == Year) {
-        if (defVal.canConvert<QString>()) {
-            str = QLatin1Char('\'') + defVal.toString() + QLatin1Char('\'');
-        }
-    } else if (type > Year && type < Enum) { // binay and text columns
-        if (defVal.canConvert<QString>()) {
-            str = QLatin1Char('\'') + defVal.toString() + QLatin1Char('\'');
-        }
-    } else if (type == Boolean) {
-        if (defVal.canConvert<bool>()) {
-            str = defVal.toBool() ? QLatin1Char('1') : QLatin1Char('0');
-        }
+    } else if (dbType() == Migrator::SQLite) {
+
     }
 
+
     return str;
+}
+
+QString ColumnPrivate::schemaAndColName() const
+{
+    Q_Q(const Column);
+    return q->parent()->objectName() + QLatin1Char('.') + q->objectName();
 }
 
 QString ColumnPrivate::queryString() const
@@ -295,7 +306,7 @@ QString ColumnPrivate::queryString() const
     if (operation == CreateColumn && type < Key) {
         parts << q->objectName();
         parts << typeString();
-        if (type < Bit && _unsigned) {
+        if (type < Bit && _unsigned && dbType() != Migrator::SQLite) {
             parts << QStringLiteral("UNSIGNED");
         }
         if (type > LongBlob && type < Enum) {
@@ -450,7 +461,7 @@ Column* Column::autoIncrement(bool autoIncrement)
     if (d->type < ColumnPrivate::Decimal || (d->type > ColumnPrivate::Numeric && d->type < ColumnPrivate::Bit)) {
         d->_autoIncrement = autoIncrement;
     } else {
-        qCWarning(FIR_CORE, "autoIncrement() / AUTO_INCREMENT attribute is only usable on integer and flotaing-point data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
+        qCWarning(FIR_CORE, "autoIncrement() / AUTO_INCREMENT attribute is only usable on integer and floating-point data type columns. \"%s\" is of type %s.", qUtf8Printable(d->schemaAndColName()), qUtf8Printable(d->typeString()));
     }
     return this;
 }
@@ -458,10 +469,15 @@ Column* Column::autoIncrement(bool autoIncrement)
 Column* Column::unSigned(bool unSigned)
 {
     Q_D(Column);
-    if (d->type < ColumnPrivate::Bit) {
-        d->_unsigned = unSigned;
+    if (d->dbType() != Migrator::MySQL) {
+        if (d->type < ColumnPrivate::Bit) {
+            d->_unsigned = unSigned;
+        } else {
+            qCWarning(FIR_CORE, "unSigned() / UNSIGNED attribute is only usable on numeric data type columns. \"%s\" is of type %s.", qUtf8Printable(d->schemaAndColName()), qUtf8Printable(d->typeString()));
+        }
     } else {
-        qCWarning(FIR_CORE, "unSigned() / UNSIGNED attribute is only usable on numeric data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
+        d->_unsigned = false;
+        qCWarning(FIR_CORE, "Can not set \"%s\" as UNSIGNED %s. %s %s does not support UNSIGNED values.", qUtf8Printable(d->schemaAndColName()), qUtf8Printable(d->typeString()), qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion().toString()));
     }
     return this;
 }
@@ -469,11 +485,19 @@ Column* Column::unSigned(bool unSigned)
 Column* Column::charset(const QString &charset)
 {
     Q_D(Column);
-    if (d->type >= ColumnPrivate::Char && d->type <= ColumnPrivate::Set) {
-        d->charset = charset;
+    if (d->dbType() != Migrator::MySQL) {
+        if (d->type >= ColumnPrivate::Char && d->type <= ColumnPrivate::Set) {
+            d->charset = charset;
+        } else {
+            qCWarning(FIR_CORE, "charset() / CHARACTER SET attribute is only usable on character data type columns. \"%s\" is of type %s.", qUtf8Printable(d->schemaAndColName()), qUtf8Printable(d->typeString()));
+        }
     } else {
-        qCWarning(FIR_CORE, "charset() / CHARACTER SET attribute is only usable on character data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
+        qCWarning(FIR_CORE, "Can not set CHARACTER SET on column %s. %s %s only supports a per database charset set by PRAGMA encoding.", qUtf8Printable(d->schemaAndColName()), qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion().toString()));
+        d->charset.clear();
     }
+
+
+
     return this;
 }
 
@@ -483,7 +507,7 @@ Column* Column::collation(const QString &collation)
     if (d->type >= ColumnPrivate::Char && d->type <= ColumnPrivate::Set) {
         d->collation = collation;
     } else {
-        qCWarning(FIR_CORE, "collation() / COLLATE attribute is only usable on character data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
+        qCWarning(FIR_CORE, "collation() / COLLATE attribute is only usable on character data type columns. \"%s\" is of type %s.", qUtf8Printable(d->schemaAndColName()), qUtf8Printable(d->typeString()));
     }
     return this;
 }
@@ -493,16 +517,16 @@ Column* Column::defaultValue(const QVariant &defVal)
     Q_D(Column);
     if (d->type < ColumnPrivate::Key) {
         if ((d->type > ColumnPrivate::VarBinary && d->type < ColumnPrivate::Char) && !d->isDbFeatureAvailable(Migrator::DefValOnBlob)) {
-            qCWarning(FIR_CORE, "%s %s does not support DEFAULT values on BLOB type columns. \"%s\" is of type %s.", qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion().toString()), qUtf8Printable(objectName()),  qUtf8Printable(d->typeString()));
+            qCWarning(FIR_CORE, "%s %s does not support DEFAULT values on BLOB type columns. \"%s\" is of type %s.", qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion().toString()), qUtf8Printable(d->schemaAndColName()),  qUtf8Printable(d->typeString()));
             return this;
         }
         if ((d->type > ColumnPrivate::VarChar && d->type < ColumnPrivate::Enum) && !d->isDbFeatureAvailable(Migrator::DefValOnText)) {
-            qCWarning(FIR_CORE, "%s %s does not support DEFAULT values on TEXT type columns. \"%s\" is of type %s.", qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion().toString()), qUtf8Printable(objectName()),  qUtf8Printable(d->typeString()));
+            qCWarning(FIR_CORE, "%s %s does not support DEFAULT values on TEXT type columns. \"%s\" is of type %s.", qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion().toString()), qUtf8Printable(d->schemaAndColName()),  qUtf8Printable(d->typeString()));
             return this;
         }
         d->defVal = defVal;
     } else {
-        qCWarning(FIR_CORE, "defaultValue() / DEFAULT attribute is only usable on data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
+        qCWarning(FIR_CORE, "defaultValue() / DEFAULT attribute is only usable on data type columns. \"%s\" is of type %s.", qUtf8Printable(d->schemaAndColName()), qUtf8Printable(d->typeString()));
     }
     return this;
 }
@@ -513,7 +537,7 @@ Column *Column::nullable(bool isNullable)
     if (d->type < ColumnPrivate::Key) {
         d->_nullable = isNullable;
     } else {
-        qCWarning(FIR_CORE, "nullable() / NOT NULL attribute is only usable on data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
+        qCWarning(FIR_CORE, "nullable() / NOT NULL attribute is only usable on data type columns. \"%s\" is of type %s.", qUtf8Printable(d->schemaAndColName()), qUtf8Printable(d->typeString()));
     }
     return this;
 }
@@ -531,7 +555,7 @@ Column *Column::primary(bool primary)
     if (d->type < ColumnPrivate::Key) {
         d->_primaryKey = primary;
     } else {
-        qCWarning(FIR_CORE, "primary() / PRIMARY KEY attribute is only usable on data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
+        qCWarning(FIR_CORE, "primary() / PRIMARY KEY attribute is only usable on data type columns. \"%s\" is of type %s.", qUtf8Printable(d->schemaAndColName()), qUtf8Printable(d->typeString()));
     }
     return this;
 }
@@ -542,7 +566,7 @@ Column *Column::unique(bool unique)
     if (d->type < ColumnPrivate::Key) {
         d->_unique = unique;
     } else {
-        qCWarning(FIR_CORE, "unique() / UNIQUE attribute is only usable on data type columns. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
+        qCWarning(FIR_CORE, "unique() / UNIQUE attribute is only usable on data type columns. \"%s\" is of type %s.", qUtf8Printable(d->schemaAndColName()), qUtf8Printable(d->typeString()));
     }
     return this;
 }
@@ -553,7 +577,7 @@ Column *Column::onDelete(const QString &referenceOption)
     if (d->type == ColumnPrivate::ForeignKey) {
         d->onDelete = referenceOption;
     } else {
-        qCWarning(FIR_CORE, "onDelete() / ON DELETE reference option is only usable on FOREIGN KEY constraints. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
+        qCWarning(FIR_CORE, "onDelete() / ON DELETE reference option is only usable on FOREIGN KEY constraints. \"%s\" is of type %s.", qUtf8Printable(d->schemaAndColName()), qUtf8Printable(d->typeString()));
     }
     return this;
 }
@@ -564,7 +588,7 @@ Column *Column::onUpdate(const QString &referenceOption)
     if (d->type == ColumnPrivate::ForeignKey) {
         d->onUpdate = referenceOption;
     } else {
-        qCWarning(FIR_CORE, "onUpdate() / ON UPDATE reference option is only usable on FOREIGN KEY constraints. \"%s\" is of type %s.", qUtf8Printable(objectName()), qUtf8Printable(d->typeString()));
+        qCWarning(FIR_CORE, "onUpdate() / ON UPDATE reference option is only usable on FOREIGN KEY constraints. \"%s\" is of type %s.", qUtf8Printable(d->schemaAndColName()), qUtf8Printable(d->typeString()));
     }
     return this;
 }
@@ -572,13 +596,18 @@ Column *Column::onUpdate(const QString &referenceOption)
 Column *Column::comment(const QString &comment)
 {
     Q_D(Column);
-    QString _comment = comment;
-    _comment.replace(QLatin1Char('\''), QLatin1String("\\'"));
-    if (_comment.size() > 1024) {
-        qCWarning(FIR_CORE, "comment() / COMMENT can not exceed 1024 characters. Your comment is %i characters long. It will be truncated.", _comment.size());
-        _comment = _comment.left(1024);
+    if (d->isDbFeatureAvailable(Migrator::CommentsOnColumns)) {
+        QString _comment = comment;
+        _comment.replace(QLatin1Char('\''), QLatin1String("\\'"));
+        if (_comment.size() > 1024) {
+            qCWarning(FIR_CORE, "%s: comment() / COMMENT can not exceed 1024 characters. Your comment is %i characters long. It will be truncated.", qUtf8Printable(d->schemaAndColName()), _comment.size());
+            _comment = _comment.left(1024);
+        }
+        d->comment = _comment;
+    } else {
+        qCWarning(FIR_CORE, "%s: Setting comments on columns is not supported by %s %s.", qUtf8Printable(d->schemaAndColName()), qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion().toString()));
+        d->comment.clear();
     }
-    d->comment = _comment;
     return this;
 }
 
