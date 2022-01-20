@@ -254,13 +254,22 @@ bool Migrator::migrate()
     qCInfo(FIR_CORE, "Start database migrations on %s database version %s", qUtf8Printable(dbTypeToStr()), qUtf8Printable(d->dbVersion.toString()));
 
     QSqlQuery query(d->db);
-    if (!query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS %1 ("
-                                   "migration VARCHAR(255) NOT NULL, "
-                                   "applied DATETIME DEFAULT CURRENT_TIMESTAMP, "
-                                   "UNIQUE KEY migration (migration)"
-                                   ") DEFAULT CHARSET = latin1").arg(d->migrationsTable))) {
-        qCCritical(FIR_CORE, "Can not create migrations table \"%s\": %s", qUtf8Printable(d->migrationsTable), qUtf8Printable(query.lastError().text()));
-        return false;
+    if (dbType() == Migrator::SQLite) {
+        if (!query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS %1 ("
+                                       "migration TEXT NOT NULL UNIQUE, "
+                                       "applied NUMERIC DEFAULT CURRENT_TIMESTAMP)").arg(d->migrationsTable))) {
+            qCCritical(FIR_CORE, "Can not create migrations table \"%s\": %s", qUtf8Printable(d->migrationsTable), qUtf8Printable(query.lastError().text()));
+            return false;
+        }
+    } else {
+        if (!query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS %1 ("
+                                       "migration VARCHAR(255) NOT NULL, "
+                                       "applied DATETIME DEFAULT CURRENT_TIMESTAMP, "
+                                       "UNIQUE KEY migration (migration)"
+                                       ") DEFAULT CHARSET = latin1").arg(d->migrationsTable))) {
+            qCCritical(FIR_CORE, "Can not create migrations table \"%s\": %s", qUtf8Printable(d->migrationsTable), qUtf8Printable(query.lastError().text()));
+            return false;
+        }
     }
 
     QStringList appliedMigrations;

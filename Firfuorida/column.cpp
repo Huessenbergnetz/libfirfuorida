@@ -326,7 +326,11 @@ QString ColumnPrivate::queryString() const
             parts << QStringLiteral("PRIMARY KEY");
         }
         if (_unique) {
-            parts << QStringLiteral("UNIQUE KEY");
+            if (dbType() == Migrator::SQLite) {
+                parts << QStringLiteral("UNIQUE");
+            } else {
+                parts << QStringLiteral("UNIQUE KEY");
+            }
         }
         if (!_nullable || _primaryKey) {
             parts << QStringLiteral("NOT NULL");
