@@ -32,11 +32,12 @@ void TestErrorObject::testConstructorWithArgs()
     QCOMPARE(e1.text(), e1Text);
     QCOMPARE(e1.sqlError().type(), QSqlError::NoError);
 
-    QSqlError sqlError(QStringLiteral("Drivertext"), QStringLiteral("datbase text"), QSqlError::StatementError);
+    QSqlError sqlError(QStringLiteral("Drivertext"), QStringLiteral("database text"), QSqlError::StatementError);
     const QString e2Text = QStringLiteral("Can not execute database query statement.");
+    const QString e2CompText = e2Text + QChar(QChar::Space) + QStringLiteral("database text") + QChar(QChar::Space) + QStringLiteral("Drivertext");
     Firfuorida::Error e2(sqlError, e2Text);
     QCOMPARE(e2.type(), Firfuorida::Error::SqlError);
-    QCOMPARE(e2.text(), e2Text);
+    QCOMPARE(e2.text(), e2CompText);
     QCOMPARE(e2.sqlError(), sqlError);
 }
 
