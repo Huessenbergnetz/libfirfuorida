@@ -6,6 +6,7 @@ set(firfuorida_SRC
     migration.cpp
     table.cpp
     column.cpp
+    error.cpp
 )
 
 set(firfuorida_HEADERS
@@ -19,6 +20,8 @@ set(firfuorida_HEADERS
     Table
     column.h
     Column
+    error.h
+    Error
 )
 
 set(firfuorida_PRIVATE_HEADERS
@@ -26,6 +29,7 @@ set(firfuorida_PRIVATE_HEADERS
     migration_p.h
     table_p.h
     column_p.h
+    error_p.h
 )
 
 add_library(FirfuoridaQt${QT_VERSION_MAJOR} SHARED
