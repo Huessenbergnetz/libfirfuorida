@@ -35,6 +35,7 @@ public:
         NoError         = 0,    /**< No error occured. */
         SqlError        = 1,    /**< A SQL error occured, sqlError() will return a valid QSqlError object. */
         FileSystemError = 2,    /**< A filesystem error occured. */
+        InternalError   = 3,    /**< An internal error occured. */
         UnknownError    = 255   /**< An unknown error occured. */
     };
 
@@ -88,6 +89,9 @@ public:
     ErrorType type() const;
     /*!
      * \brief Returns the error text.
+     *
+     * If error is of type() SqlError, the text will also contain the text
+     * returned by QSqlError::text();
      */
     QString text() const;
     /*!
@@ -112,7 +116,7 @@ protected:
 
 /*!
  * \relates Firfuorida::Error
- * \brief Writes the \a error to the \a dbg stream and returns the stream.
+ * \brief Writes the text() of \a error to the \a dbg stream and returns the stream.
  */
 FIRFUORIDA_LIBRARY QDebug operator<<(QDebug dbg, const Firfuorida::Error &error);
 

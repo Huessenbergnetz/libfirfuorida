@@ -47,7 +47,11 @@ Error::ErrorType Error::type() const
 
 QString Error::text() const
 {
-    return d->text;
+    if (d->type == SqlError) {
+        return d->text + QChar(QChar::Space) + d->sqlError.text();
+    } else {
+        return d->text;
+    }
 }
 
 QSqlError Error::sqlError() const
@@ -72,13 +76,6 @@ bool Error::operator==(const Error &other) const noexcept
 QDebug operator<<(QDebug dbg, const Firfuorida::Error &error)
 {
     QDebugStateSaver saver(dbg);
-    dbg.nospace() << "Firfuorida::Error(";
-    dbg << "Type: " << error.type();
-    dbg << ", Text: " << error.text();
-    if (error.type() == Error::SqlError && error.sqlError().type() != QSqlError::NoError) {
-        dbg << ", SQL Error Type: " << error.sqlError().type();
-        dbg << ", SQL Error Text: " << error.sqlError().text();
-    }
-    dbg << ')';
+    dbg.nospace() << error.text();;
     return dbg.maybeSpace();
 }
