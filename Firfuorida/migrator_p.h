@@ -16,6 +16,7 @@ public:
     void setDbType();
     void setDbVersion();
 
+    Error lastError;
     QSqlDatabase db;
     QString connectionName;
     QString migrationsTable;

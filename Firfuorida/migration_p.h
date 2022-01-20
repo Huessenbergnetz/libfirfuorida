@@ -16,6 +16,7 @@ public:
     bool rollback(const QString &connectionName);
 
     Migration *q_ptr = nullptr;
+    Error lastError;
     Q_DECLARE_PUBLIC(Migration)
 };
 

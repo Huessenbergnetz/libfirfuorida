@@ -102,7 +102,8 @@ bool Migrator::initDatabase()
     if (!d->db.isOpen()) {
         d->db = QSqlDatabase::database(d->connectionName);
         if (!d->db.isOpen()) {
-            qCCritical(FIR_CORE, "Can not open database connection \"%s\": %s", qUtf8Printable(d->connectionName), qUtf8Printable(d->db.lastError().text()));
+            d->lastError = Error(d->db.lastError(), QStringLiteral("Can not open database connection \"%1\":").arg(d->connectionName));
+            qCCritical(FIR_CORE) << d->lastError;
             return false;
         }
     }
@@ -239,13 +240,15 @@ QString Migrator::migrationsTable() const
 
 bool Migrator::migrate()
 {
+    Q_D(Migrator);
+
+    d->lastError = Error();
+
     const QList<Migration *> migrations = findChildren<Migration *>(QString(), Qt::FindDirectChildrenOnly);
     if (migrations.empty()) {
         qCWarning(FIR_CORE, "No migrations added to this migrator.");
         return true;
     }
-
-    Q_D(Migrator);
 
     if (!initDatabase()) {
         return false;
@@ -258,7 +261,8 @@ bool Migrator::migrate()
         if (!query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS %1 ("
                                        "migration TEXT NOT NULL UNIQUE, "
                                        "applied NUMERIC DEFAULT CURRENT_TIMESTAMP)").arg(d->migrationsTable))) {
-            qCCritical(FIR_CORE, "Can not create migrations table \"%s\": %s", qUtf8Printable(d->migrationsTable), qUtf8Printable(query.lastError().text()));
+            d->lastError = Error(query.lastError(), QStringLiteral("Can not create migrations table \"%s\":").arg(d->migrationsTable));
+            qCCritical(FIR_CORE) << d->lastError;
             return false;
         }
     } else {
@@ -267,7 +271,8 @@ bool Migrator::migrate()
                                        "applied DATETIME DEFAULT CURRENT_TIMESTAMP, "
                                        "UNIQUE KEY migration (migration)"
                                        ") DEFAULT CHARSET = latin1").arg(d->migrationsTable))) {
-            qCCritical(FIR_CORE, "Can not create migrations table \"%s\": %s", qUtf8Printable(d->migrationsTable), qUtf8Printable(query.lastError().text()));
+            d->lastError = Error(query.lastError(), QStringLiteral("Can not create migrations table \"%s\":").arg(d->migrationsTable));
+            qCCritical(FIR_CORE) << d->lastError;
             return false;
         }
     }
@@ -278,7 +283,8 @@ bool Migrator::migrate()
             appliedMigrations << query.value(0).toString();
         }
     } else {
-        qCCritical(FIR_CORE, "Failed to query already applied migrations from the database: %s", qUtf8Printable(query.lastError().text()));
+        d->lastError = Error(query.lastError(), QStringLiteral("Failed to query already applied migrations from the database:"));
+        qCCritical(FIR_CORE) << d->lastError;
         return false;
     }
 
@@ -288,11 +294,12 @@ bool Migrator::migrate()
             qCInfo(FIR_CORE, "Applying migration %s", migration->metaObject()->className());
             if (migration->d_func()->migrate(d->connectionName)) {
                 if (!query.exec(QStringLiteral("INSERT INTO %1 (migration) VALUES ('%2')").arg(d->migrationsTable, className))) {
-                    qCCritical(FIR_CORE, "Failed to insert applied migration \"%s\" into migration table \"%s\".", migration->metaObject()->className(), qUtf8Printable(d->migrationsTable));
+                    d->lastError = Error(query.lastError(), QStringLiteral("Failed to insert applied migration \"%s\" into migration table \"%s\":").arg(QString::fromLatin1(migration->metaObject()->className()), d->migrationsTable));
+                    qCCritical(FIR_CORE) << d->lastError;
                     return false;
                 }
             } else {
-                qCCritical(FIR_CORE, "Failed to apply migration \"%s\".", migration->metaObject()->className());
+                d->lastError = migration->lastError();
                 return false;
             }
         }
@@ -303,13 +310,15 @@ bool Migrator::migrate()
 
 bool Migrator::rollback(uint steps)
 {
+    Q_D(Migrator);
+
+    d->lastError = Error();
+
     const QList<Migration *> migrations = findChildren<Migration *>(QString(), Qt::FindDirectChildrenOnly);
     if (migrations.empty()) {
         qCWarning(FIR_CORE, "No migrations added to this migrator.");
         return true;
     }
-
-    Q_D(Migrator);
 
     if (!initDatabase()) {
         return false;
@@ -331,7 +340,8 @@ bool Migrator::rollback(uint steps)
             appliedMigrations << query.value(0).toString();
         }
     } else {
-        qCCritical(FIR_CORE, "Failed to query already applied migrations from the database: %s", qUtf8Printable(query.lastError().text()));
+        d->lastError = Error(query.lastError(), QStringLiteral("Failed to query already applied migrations from the database:"));
+        qCCritical(FIR_CORE) << d->lastError;
         return false;
     }
 
@@ -348,11 +358,12 @@ bool Migrator::rollback(uint steps)
             qCInfo(FIR_CORE, "Rolling back migration %s", m->metaObject()->className());
             if (m->d_func()->rollback(d->connectionName)) {
                 if (!query.exec(QStringLiteral("DELETE FROM %1 WHERE migration = '%2'").arg(d->migrationsTable, migrationName))) {
-                    qCCritical(FIR_CORE, "Failed to remove applied migration \"%s\" from the migration table \"%s\".", m->metaObject()->className(), qUtf8Printable(d->migrationsTable));
+                    d->lastError = Error(query.lastError(), QStringLiteral("Failed to remove applied migration \"%s\" from the migrations table \"%s\":").arg(QString::fromLatin1(m->metaObject()->className()), d->migrationsTable));
+                    qCCritical(FIR_CORE) << d->lastError;
                     return false;
                 }
             } else {
-                qCCritical(FIR_CORE, "Failed to rolling back migration \"%s\".", m->metaObject()->className());
+                d->lastError = m->lastError();
                 return false;
             }
         }
@@ -379,6 +390,12 @@ bool Migrator::refresh(uint steps)
     }
 
     return migrate();
+}
+
+Error Migrator::lastError() const
+{
+    Q_D(const Migrator);
+    return d->lastError;
 }
 
 #include "moc_migrator.cpp"

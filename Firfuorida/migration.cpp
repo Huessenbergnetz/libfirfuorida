@@ -15,18 +15,22 @@ using namespace Firfuorida;
 
 bool MigrationPrivate::migrate(const QString &connectionName)
 {
+    lastError = Error();
+
+    Q_Q(Migration);
+
     QSqlDatabase db = QSqlDatabase::database(connectionName);
     if (!db.isOpen()) {
-        qCCritical(FIR_CORE, "Failed to get database connection \"%s\": %s", qUtf8Printable(connectionName), qUtf8Printable(db.lastError().text()));
+        lastError = Error(db.lastError(), QStringLiteral("Failed to open database connection \"%1\" to perform migration \"%2\".").arg(connectionName, QString::fromLatin1(q->metaObject()->className())));
+        qCCritical(FIR_CORE) << lastError;
         return false;
     }
 
-    Q_Q(Migration);
     q->up();
 
     const QList<Table *> tables = q->findChildren<Table *>(QString(), Qt::FindDirectChildrenOnly);
     if (tables.empty()) {
-        qCWarning(FIR_CORE, "Nothing to do for this migration.");
+        qCWarning(FIR_CORE, "Nothing to do for migration \"%s\".", qUtf8Printable(QString::fromLatin1(q->metaObject()->className())));
         return true;
     }
 
@@ -34,12 +38,14 @@ bool MigrationPrivate::migrate(const QString &connectionName)
     for (Table *t : tables) {
         if (t->d_func()->operation == TablePrivate::ExecuteUpFunction) {
             if (!q->executeUp()) {
-                qCCritical(FIR_CORE, "Failed to execute custom up function.");
+                lastError = Error(Error::InternalError, QStringLiteral("Failed to execute custom up function for migration \"%1\".").arg(QString::fromLatin1(q->metaObject()->className())));
+                qCCritical(FIR_CORE) << lastError;
                 return false;
             }
         } else {
             if (!query.exec(t->d_func()->queryString())) {
-                qCCritical(FIR_CORE, "Failed to execute statement: %s", qUtf8Printable(query.lastError().text()));
+                lastError = Error(query.lastError(), QStringLiteral("Failed to execute SQL query for migration \"%1\".").arg(QString::fromLatin1(q->metaObject()->className())));
+                qCCritical(FIR_CORE) << lastError;
                 qCCritical(FIR_CORE, "Failed query: %s", qUtf8Printable(query.lastQuery()));
                 return false;
             }
@@ -53,13 +59,17 @@ bool MigrationPrivate::migrate(const QString &connectionName)
 
 bool MigrationPrivate::rollback(const QString &connectionName)
 {
+    lastError = Error();
+
+    Q_Q(Migration);
+
     QSqlDatabase db = QSqlDatabase::database(connectionName);
     if (!db.isOpen()) {
-        qCCritical(FIR_CORE, "Failed to get database connection \"%s\": %s", qUtf8Printable(connectionName), qUtf8Printable(db.lastError().text()));
+        lastError = Error(db.lastError(), QStringLiteral("Failed to open database connection \"%1\" to perform rollback of migration \"%2\".").arg(connectionName, QString::fromLatin1(q->metaObject()->className())));
+        qCCritical(FIR_CORE) << lastError;
         return false;
     }
 
-    Q_Q(Migration);
     q->down();
 
     const QList<Table *> tables = q->findChildren<Table *>(QString(), Qt::FindDirectChildrenOnly);
@@ -72,12 +82,14 @@ bool MigrationPrivate::rollback(const QString &connectionName)
     for (Table *t : tables) {
         if (t->d_func()->operation == TablePrivate::ExecuteDownFunction) {
             if (!q->executeDown()) {
-                qCCritical(FIR_CORE, "Failed to execute custom down function.");
+                lastError = Error(Error::InternalError, QStringLiteral("Failed to execute custom down function for migration \"%1\".").arg(QString::fromLatin1(q->metaObject()->className())));
+                qCCritical(FIR_CORE) << lastError;
                 return false;
             }
         } else {
             if (!query.exec(t->d_func()->queryString())) {
-                qCCritical(FIR_CORE, "Failed to execute statement: %s", qUtf8Printable(query.lastError().text()));
+                lastError = Error(query.lastError(), QStringLiteral("Failed to execute SQL query for rolling back \"%1\".").arg(QString::fromLatin1(q->metaObject()->className())));
+                qCCritical(FIR_CORE) << lastError;
                 qCCritical(FIR_CORE, "Failed query: %s", qUtf8Printable(query.lastQuery()));
                 return false;
             }
@@ -205,6 +217,12 @@ Migrator::DatabaseFeatures Migration::dbFeatures() const
 bool Migration::isDbFeatureAvailable(Migrator::DatabaseFeatures dbFeatures) const
 {
     return qobject_cast<Migrator*>(parent())->isDbFeatureAvailable(dbFeatures);
+}
+
+Error Migration::lastError() const
+{
+    Q_D(const Migration);
+    return d->lastError;
 }
 
 #include "moc_migration.cpp"

@@ -11,6 +11,7 @@
 #include <QSqlDatabase>
 #include <QVersionNumber>
 #include <QFlags>
+#include "error.h"
 
 namespace Firfuorida {
 
@@ -154,24 +155,39 @@ public:
 
     /*!
      * \brief Runs all migrations not already applied and return \c true on success.
+     *
+     * If an error occures, \c false will be returned. Use lastError() to see what
+     * happened.
      */
     bool migrate();
     /*!
      * \brief Rolls back the number of migrations set by \a steps and returns \c true on success.
      *
      * If \a steps is \c 0, only one migration will be rolled back.
+     * If an error occures, \c false will be returned. Use lastError() to see what
+     * happened.
      */
     bool rollback(uint steps = 1);
     /*!
      * \brief Rolls back all migrations and returns \c true on success.
+     *
+     * If an error occures, \c false will be returned. Use lastError() to see what
+     * happened.
      */
     bool reset();
     /*!
      * \brief Rolls back and reapplies the number of migrations defined by \a steps.
      *
      * If \a steps is \c 0, all migrations are rolled back and reapplied.
+     * If an error occures, \c false will be returned. Use lastError() to see what
+     * happened.
      */
     bool refresh(uint steps = 0);
+
+    /*!
+     * \brief Returns error information about the last error (if any) that occurred with this migrator.
+     */
+    Error lastError() const;
 };
 
 }

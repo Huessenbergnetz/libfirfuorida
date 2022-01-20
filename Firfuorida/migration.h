@@ -9,6 +9,7 @@
 #include "firfuorida_global.h"
 #include "table.h"
 #include "migrator.h"
+#include "error.h"
 #include <QObject>
 #include <functional>
 
@@ -185,6 +186,11 @@ protected:
      * or Migrator::rollback() has been called.
      */
     bool isDbFeatureAvailable(Migrator::DatabaseFeatures dbFeatures) const;
+
+    /*!
+     * \brief Returns error information about the last error (if any) that occurred with this migrator.
+     */
+    Error lastError() const;
 };
 
 }
