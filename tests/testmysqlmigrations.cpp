@@ -18,10 +18,10 @@
 #include "migrations/m20220119t181401_medium.h"
 #include "migrations/m20220119t181501_big.h"
 
-#define DB_NAME "migtestdb"
-#define DB_USER "migtester"
-#define DB_PASS "lalalala1"
-#define DB_CONN "migtests"
+#define DB_NAME "mysqlmigtestdb"
+#define DB_USER "mysqlmigtester"
+#define DB_PASS "mysqllalalala1"
+#define DB_CONN "mysqlmigtests"
 
 class TestMySqlMigrations : public TestMigrations
 {

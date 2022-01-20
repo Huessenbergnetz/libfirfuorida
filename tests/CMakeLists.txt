@@ -58,3 +58,4 @@ function(firfuorida_test _testname _link1 _link2 _link3)
 endfunction(firfuorida_test _testname _link1 _link2 _link3)
 
 firfuorida_test(testmysqlmigrations "" "" "")
+firfuorida_test(testsqlitemigrations "" "" "")
