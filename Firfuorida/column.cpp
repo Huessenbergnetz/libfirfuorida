@@ -214,11 +214,27 @@ QString ColumnPrivate::typeString() const
 
 QString ColumnPrivate::defValString() const
 {
+    Q_Q(const Column);
+
     QString str;
 
     if (dbType() == Migrator::MySQL || dbType() == Migrator::MariaDB) {
+        const QString defValStr = defVal.toString();
+        if (defValStr.startsWith(QLatin1Char('(')) && defValStr.endsWith(QLatin1Char(')'))) {
+            str = defValStr;
+            return str;
+        }
+
         if (type < Bit) { // numeric columns
-            str = defVal.toString();
+            bool isDouble = false;
+            bool isInteger = false;
+            auto _d = defVal.toDouble(&isDouble);
+            auto _i = defVal.toLongLong(&isInteger);
+            if ((isDouble || isInteger) && defVal.canConvert<QString>()) {
+                str = defVal.toString();
+            } else {
+                qCWarning(FIR_CORE) << "Invalid default value for column" << q->objectName() << "of type" << typeString() << ":" << defVal;
+            }
         } else if (type == Bit) {
             if (defVal.canConvert<QBitArray>()) {
                 const QBitArray ba = defVal.toBitArray();
@@ -236,50 +252,82 @@ QString ColumnPrivate::defValString() const
                     }
                     str[length + 3] = QLatin1Char('\'');
                 }
-            } else {
-                if (defVal.canConvert<QString>()) {
-                    str = QLatin1Char('\'') + defVal.toString() + QLatin1Char('\'');
+            } else if (defVal.canConvert<QString>()) {
+                str = defVal.toString();
+                if (!str.startsWith(QLatin1String("b'"))) {
+                    str.prepend(QLatin1String("b'"));
                 }
+                if (!str.endsWith(QLatin1Char('\''))) {
+                    str.append(QLatin1Char('\''));
+                }
+            } else {
+                qCWarning(FIR_CORE) << "Invalid default value for column" << q->objectName() << "of type" << typeString() << ":" << defVal;
             }
         } else if (type == Date) {
             if (defVal.canConvert<QDate>()) {
                 str = QLatin1Char('\'') + defVal.toDate().toString(Qt::ISODate) + QLatin1Char('\'');
+            } else if (defVal.canConvert<QString>()) {
+                str = QLatin1Char('\'') + defVal.toString() + QLatin1Char('\'');
             } else {
-                if (defVal.canConvert<QString>()) {
-                    str = QLatin1Char('\'') + defVal.toString() + QLatin1Char('\'');
-                }
+                qCWarning(FIR_CORE) << "Invalid default value for column" << q->objectName() << "of type" << typeString() << ":" << defVal;
             }
         } else if (type == DateTime || type == Timestamp) {
             if (defVal.type() == QMetaType::QDateTime) {
-                str = QLatin1Char('\'') + defVal.toDateTime().toString(QStringLiteral("yyyy-MM-DD HH:mm:ss.zzz")) + QLatin1Char('\'');
-            } else {
-                if (defVal.canConvert<QString>()) {
+                str = QLatin1Char('\'') + defVal.toDateTime().toString(QStringLiteral("yyyy-MM-dd HH:mm:ss.zzz")) + QLatin1Char('\'');
+            } else if (defVal.canConvert<QString>()) {
+                if (defValStr.compare(QLatin1String("CURRENT_TIMESTAMP"), Qt::CaseInsensitive) == 0) {
+                    str = defValStr;
+                } else {
                     str = QLatin1Char('\'') + defVal.toString() + QLatin1Char('\'');
                 }
+            } else {
+                qCWarning(FIR_CORE) << "Invalid default value for column" << q->objectName() << "of type" << typeString() << ":" << defVal;
             }
         } else if (type == Time) {
             if (defVal.canConvert<QTime>()) {
                 str = QLatin1Char('\'') + defVal.toTime().toString(Qt::ISODateWithMs) + QLatin1Char('\'');
+            } else if (defVal.canConvert<QString>()) {
+                str = QLatin1Char('\'') + defVal.toString() + QLatin1Char('\'');
             } else {
-                if (defVal.canConvert<QString>()) {
-                    str = QLatin1Char('\'') + defVal.toString() + QLatin1Char('\'');
-                }
+                qCWarning(FIR_CORE) << "Invalid default value for column" << q->objectName() << "of type" << typeString() << ":" << defVal;
             }
         } else if (type == Year) {
             if (defVal.canConvert<QString>()) {
                 str = QLatin1Char('\'') + defVal.toString() + QLatin1Char('\'');
+            } else {
+                qCWarning(FIR_CORE) << "Invalid default value for column" << q->objectName() << "of type" << typeString() << ":" << defVal;
             }
-        } else if (type > Year && type < Enum) { // binay and text columns
+        } else if (type > Year && type < TinyBlob) { // binay type columns
             if (defVal.canConvert<QString>()) {
                 str = QLatin1Char('\'') + defVal.toString() + QLatin1Char('\'');
+            } else {
+                qCWarning(FIR_CORE) << "Invalid default value for column" << q->objectName() << "of type" << typeString() << ":" << defVal;
+            }
+        } else if (type >= TinyBlob && type <= LongBlob) { // blob type columns
+            if (defVal.canConvert<QByteArray>()) {
+                str = QLatin1String("0x") + QString::fromLatin1(defVal.toByteArray().toHex());
+            } else {
+                qCWarning(FIR_CORE) << "Invalid default value for column" << q->objectName() << "of type" << typeString() << ":" << defVal;
+            }
+        } else if (type >= Char && type <= LongText) { // char and text type columns
+            if (defVal.canConvert<QString>()) {
+                QString _str = defVal.toString();
+                _str.replace(QLatin1Char('\''), QLatin1String("\\'"));
+                str = QLatin1Char('\'') + _str + QLatin1Char('\'');
+            } else {
+                qCWarning(FIR_CORE) << "Invalid default value for column" << q->objectName() << "of type" << typeString() << ":" << defVal;
             }
         } else if (type == Boolean) {
             if (defVal.canConvert<bool>()) {
                 str = defVal.toBool() ? QLatin1Char('1') : QLatin1Char('0');
+            } else {
+                qCWarning(FIR_CORE) << "Invalid default value for column" << q->objectName() << "of type" << typeString() << ":" << defVal;
             }
         }
+
     } else if (dbType() == Migrator::SQLite) {
-        const QString defValStr = defVal.toString();
+
+        QString defValStr = defVal.toString();
         if (!defValStr.isEmpty()) {
             if (defValStr.compare(QLatin1String("CURRENT_TIME"), Qt::CaseInsensitive) == 0 || defValStr.compare(QLatin1String("CURRENT_DATE"), Qt::CaseInsensitive) == 0 || defValStr.compare(QLatin1String("CURRENT_TIMESTAMP"), Qt::CaseInsensitive) == 0) {
                 str = defValStr;
@@ -287,29 +335,34 @@ QString ColumnPrivate::defValString() const
             }
         }
 
-        bool isInteger = false;
-        const qlonglong defValLl = defValStr.toLongLong(&isInteger);
-        if (isInteger) {
+        if (defValStr.startsWith(QLatin1Char('(')) && defValStr.endsWith(QLatin1Char(')'))) {
             str = defValStr;
             return str;
         }
 
-        if (!defValStr.isEmpty()) {
-            // blob literal
-            if (defValStr.startsWith(QLatin1String("x'"), Qt::CaseInsensitive) && defValStr.endsWith(QLatin1Char('\''))) {
+        if (type < Bit) { // numeric values
+            bool isInteger = false;
+            bool isDouble = false;
+            const auto _i = defVal.toLongLong(&isInteger);
+            const auto _d = defVal.toDouble(&isDouble);
+            if (isInteger || isDouble) {
                 str = defValStr;
-                return str;
+            } else {
+                qCWarning(FIR_CORE) << "Invalid default value for column" << q->objectName() << "of type" << typeString() << ":" << defVal;
             }
-
-            // constant expression
-            if (defValStr.startsWith(QLatin1Char('(')) && defValStr.endsWith(QLatin1Char(')'))) {
+        } else if (type >= TinyBlob && type <= LongBlob) {
+            if (defValStr.startsWith(QLatin1String("x'")) && defValStr.endsWith(QLatin1Char('\''))) {
                 str = defValStr;
-                return str;
+            } else if (defVal.canConvert<QByteArray>()) {
+                const auto ba = defVal.toByteArray();
+                str = QLatin1String("x'") + QString::fromLatin1(defVal.toByteArray().toHex()) + QLatin1Char('\'');
+            } else {
+                qCWarning(FIR_CORE) << "Invalid default value for column" << q->objectName() << "of type" << typeString() << ":" << defVal;
             }
-
-            // string literal
-            str = QLatin1Char('\'') + defValStr + QLatin1Char('\'');
-            return str;
+        } else if ((type == Binary || type == VarBinary || (type >= Char && type <= LongText)) && defVal.canConvert<QString>()) {
+            QString _str = defVal.toString();
+            _str.replace(QLatin1Char('\''), QLatin1String("\\'"));
+            str = QLatin1Char('\'') + _str + QLatin1Char('\'');
         }
     }
 

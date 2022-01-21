@@ -17,6 +17,8 @@
 #include "migrations/m20220119t181249_small.h"
 #include "migrations/m20220119t181401_medium.h"
 #include "migrations/m20220119t181501_big.h"
+#include "migrations/m20220120t145652_tests1.h"
+#include "migrations/m20220121t083111_defaults.h"
 
 #define DB_NAME "mysqlmigtestdb"
 #define DB_USER "mysqlmigtester"
@@ -35,6 +37,7 @@ private Q_SLOTS:
     void cleanupTestCase();
 
     void testTinyCols();
+    void testDefaultValues();
     void testMigration();
 
 private:
@@ -60,6 +63,8 @@ private:
     bool checkTableComment(const QString &tableName, const QString &comment) const;
 
     bool checkColumn(const QString &table, const QString &column, const QString &type, ColOpts options = NoOptions, const QVariant &defVal = QVariant()) const;
+
+    bool testInsert(const QString &table, const QVariantMap &values);
 };
 
 bool TestMySqlMigrations::startDb()
@@ -412,6 +417,14 @@ bool TestMySqlMigrations::checkColumn(const QString &table, const QString &colum
                     _colDef.chop(1);
                     _colDef.remove(0,1);
                 }
+                if (_defVal.compare(QLatin1String("CURRENT_TIMESTAMP"), Qt::CaseInsensitive) == 0) {
+                    if (_colDef.compare(QLatin1String("current_timestamp()")) != 0) {
+                        qCritical("Unexpected default value: %s != %s", qUtf8Printable(_colDef), "current_timestamp()");
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
                 if (_colDef != _defVal) {
                     qCritical("Unexpected default value: %s != %s", qUtf8Printable(_colDef), qUtf8Printable(_defVal));
                     return false;
@@ -423,6 +436,40 @@ bool TestMySqlMigrations::checkColumn(const QString &table, const QString &colum
     }
 
     return false;
+}
+
+bool TestMySqlMigrations::testInsert(const QString &table, const QVariantMap &values)
+{
+    QString qs;
+
+    const QStringList cols = values.keys();
+
+    qs = QStringLiteral("INSERT INTO ") + table + QStringLiteral(" (") + cols.join(QLatin1String(", ")) + QLatin1String(") VALUES (");
+    QStringList vals;
+    for (const QString &col : cols) {
+        const QString _val = QLatin1Char(':') + col;
+        vals << _val;
+    }
+    qs += vals.join(QLatin1String(", "));
+    qs += QLatin1Char(')');
+
+    QSqlQuery q(QSqlDatabase::database(QStringLiteral(DB_CONN)));
+
+    if (!q.prepare(qs)) {
+        qCritical() << "Failed to prepare query to insert data into database:" << q.lastError().text();
+        return false;
+    }
+
+    for (const QString &col : cols) {
+        q.bindValue(QLatin1Char(':') + col, values.value(col));
+    }
+
+    if (!q.exec()) {
+        qCritical() << "Failed to excute query to insert data into database:" << q.lastError().text();
+        return false;
+    }
+
+    return true;
 }
 
 void TestMySqlMigrations::initTestCase()
@@ -475,6 +522,19 @@ void TestMySqlMigrations::testTinyCols()
     }
     QVERIFY(migrator->rollback());
     QVERIFY(!tableExists(QStringLiteral("tiny")));
+}
+
+void TestMySqlMigrations::testDefaultValues()
+{
+    auto migrator = new Firfuorida::Migrator(QStringLiteral(DB_CONN), QStringLiteral("migrations"), this);
+    new M20220121T083111_Defaults(migrator);
+    QVERIFY(migrator->migrate());
+    QVERIFY(checkColumn(QStringLiteral("defaultTests"), QStringLiteral("intCol"), QStringLiteral("int"), TestMigrations::NoOptions, 123));
+    QVERIFY(checkColumn(QStringLiteral("defaultTests"), QStringLiteral("dateCol"), QStringLiteral("datetime"), TestMigrations::NoOptions, QStringLiteral("CURRENT_TIMESTAMP")));
+
+    QVariantMap vals;
+    vals.insert(QStringLiteral("noDefValCol"), 12345);
+    QVERIFY(testInsert(QStringLiteral("defaultTests"), vals));
 }
 
 void TestMySqlMigrations::testMigration()
