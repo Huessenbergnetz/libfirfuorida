@@ -216,7 +216,7 @@ QString ColumnPrivate::defValString() const
 {
     QString str;
 
-    if (dbType() == Migrator::MySQL || Migrator::MariaDB) {
+    if (dbType() == Migrator::MySQL || dbType() == Migrator::MariaDB) {
         if (type < Bit) { // numeric columns
             str = defVal.toString();
         } else if (type == Bit) {
@@ -279,9 +279,39 @@ QString ColumnPrivate::defValString() const
             }
         }
     } else if (dbType() == Migrator::SQLite) {
+        const QString defValStr = defVal.toString();
+        if (!defValStr.isEmpty()) {
+            if (defValStr.compare(QLatin1String("CURRENT_TIME"), Qt::CaseInsensitive) == 0 || defValStr.compare(QLatin1String("CURRENT_DATE"), Qt::CaseInsensitive) == 0 || defValStr.compare(QLatin1String("CURRENT_TIMESTAMP"), Qt::CaseInsensitive) == 0) {
+                str = defValStr;
+                return str;
+            }
+        }
 
+        bool isInteger = false;
+        const qlonglong defValLl = defValStr.toLongLong(&isInteger);
+        if (isInteger) {
+            str = defValStr;
+            return str;
+        }
+
+        if (!defValStr.isEmpty()) {
+            // blob literal
+            if (defValStr.startsWith(QLatin1String("x'"), Qt::CaseInsensitive) && defValStr.endsWith(QLatin1Char('\''))) {
+                str = defValStr;
+                return str;
+            }
+
+            // constant expression
+            if (defValStr.startsWith(QLatin1Char('(')) && defValStr.endsWith(QLatin1Char(')'))) {
+                str = defValStr;
+                return str;
+            }
+
+            // string literal
+            str = QLatin1Char('\'') + defValStr + QLatin1Char('\'');
+            return str;
+        }
     }
-
 
     return str;
 }
@@ -319,11 +349,15 @@ QString ColumnPrivate::queryString() const
                 parts << cs;
             }
         }
-        if (_autoIncrement) {
-            parts << QStringLiteral("AUTO_INCREMENT");
-        }
         if (_primaryKey || _autoIncrement) {
             parts << QStringLiteral("PRIMARY KEY");
+        }
+        if (_autoIncrement) {
+            if (dbType() == Migrator::SQLite) {
+                parts << QStringLiteral("AUTOINCREMENT");
+            } else {
+                parts << QStringLiteral("AUTO_INCREMENT");
+            }
         }
         if (_unique) {
             if (dbType() == Migrator::SQLite) {

@@ -17,6 +17,8 @@
 #include "migrations/m20220119t181249_small.h"
 #include "migrations/m20220119t181401_medium.h"
 #include "migrations/m20220119t181501_big.h"
+#include "migrations/m20220120t145652_tests1.h"
+#include "migrations/m20220121t083111_defaults.h"
 
 #define DB_CONN "sqlitemigtests"
 
@@ -32,6 +34,7 @@ private Q_SLOTS:
     void cleanupTestCase();
 
     void testTinyCols();
+    void testDefaultValues();
     void testMigration();
 
 private:
@@ -153,16 +156,6 @@ bool TestSqliteMigrations::checkColumn(const QString &table, const QString &colu
                     return false;
                 }
 
-                const bool _autoIncrement = q.value(QStringLiteral("type")).toString().toLower().contains(QStringLiteral("auto_increment"));
-                if (options.testFlag(AutoIncrement) && !_autoIncrement) {
-                    qDebug() << "Column" << column << "on table" << table << "does not have the AUTO_INCREMENT flag as expected.";
-                    return false;
-                }
-                if (!options.testFlag(AutoIncrement) && _autoIncrement) {
-                    qDebug() << "Column" << column << "on table" << table << "unexpectedly has the AUTO_INCREMENT flag.";
-                    return false;
-                }
-
                 if (defVal.isValid()) {
                     auto _colDef = q.value(QStringLiteral("dflt_value")).toString();
                     const auto _defVal = defVal.toString();
@@ -205,6 +198,13 @@ void TestSqliteMigrations::testTinyCols()
     QVERIFY(!tableExists(QStringLiteral("tiny")));
     QVERIFY(migrator->rollback());
     QVERIFY(!tableExists(QStringLiteral("tiny")));
+}
+
+void TestSqliteMigrations::testDefaultValues()
+{
+    auto migrator = new Firfuorida::Migrator(QStringLiteral(DB_CONN), QStringLiteral("migrations"), this);
+    new M20220121T083111_Defaults(migrator);
+    QVERIFY(migrator->migrate());
 }
 
 void TestSqliteMigrations::testMigration()

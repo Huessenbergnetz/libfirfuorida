@@ -50,6 +50,10 @@ set(testmigration_SRCS
     migrations/m20220119t181401_medium.cpp
     migrations/m20220119t181501_big.h
     migrations/m20220119t181501_big.cpp
+    migrations/m20220120t145652_tests1.h
+    migrations/m20220120t145652_tests1.cpp
+    migrations/m20220121t083111_defaults.h
+    migrations/m20220121t083111_defaults.cpp
 )
 
 function(firfuorida_testmigration _testname _link1 _link2 _link3)
