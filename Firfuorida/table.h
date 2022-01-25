@@ -36,7 +36,7 @@ class FIRFUORIDA_LIBRARY Table : public QObject
     friend class Migration;
     friend class MigrationPrivate;
     const QScopedPointer<TablePrivate> dptr;
-    Q_DECLARE_PRIVATE_D(dptr, Table)
+    F_DECLARE_PRIVATE_D(dptr, Table)
     explicit Table(Migration *parent);
 public:
     /*!

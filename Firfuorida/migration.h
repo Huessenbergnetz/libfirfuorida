@@ -47,7 +47,7 @@ class FIRFUORIDA_LIBRARY Migration : public QObject
     Q_DISABLE_COPY(Migration)
     friend class Migrator;
     const QScopedPointer<MigrationPrivate> dptr;
-    Q_DECLARE_PRIVATE_D(dptr, Migration)
+    F_DECLARE_PRIVATE_D(dptr, Migration)
 public:
     /*!
      * \brief Constructs a new %Migration object with the given \a parent.

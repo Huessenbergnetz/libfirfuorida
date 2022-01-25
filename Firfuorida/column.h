@@ -34,7 +34,7 @@ class FIRFUORIDA_LIBRARY Column : public QObject
     friend class Table;
     friend class TablePrivate;
     const QScopedPointer<ColumnPrivate> dptr;
-    Q_DECLARE_PRIVATE_D(dptr, Column)
+    F_DECLARE_PRIVATE_D(dptr, Column)
     explicit Column(Table *parent);
 public:
     /*!

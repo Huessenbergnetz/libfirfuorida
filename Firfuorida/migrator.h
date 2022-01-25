@@ -40,7 +40,7 @@ class FIRFUORIDA_LIBRARY Migrator : public QObject
     Q_OBJECT
     Q_DISABLE_COPY(Migrator)
     const QScopedPointer<MigratorPrivate> dptr;
-    Q_DECLARE_PRIVATE_D(dptr, Migrator)
+    F_DECLARE_PRIVATE_D(dptr, Migrator)
 public:
     /*!
      * \brief Constructs a new %Migrator object with default values and given \a parent.
