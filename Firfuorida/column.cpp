@@ -228,8 +228,8 @@ QString ColumnPrivate::defValString() const
         if (type < Bit) { // numeric columns
             bool isDouble = false;
             bool isInteger = false;
-            auto _d = defVal.toDouble(&isDouble);
-            auto _i = defVal.toLongLong(&isInteger);
+            defVal.toDouble(&isDouble);
+            defVal.toLongLong(&isInteger);
             if ((isDouble || isInteger) && defVal.canConvert<QString>()) {
                 str = defVal.toString();
             } else {
@@ -285,7 +285,11 @@ QString ColumnPrivate::defValString() const
             }
         } else if (type == Time) {
             if (defVal.canConvert<QTime>()) {
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
                 str = QLatin1Char('\'') + defVal.toTime().toString(Qt::ISODateWithMs) + QLatin1Char('\'');
+#else
+                str = QLatin1Char('\'') + defVal.toTime().toString(QStringLiteral("HH:MM:ss.zzz")) + QLatin1Char('\'');
+#endif
             } else if (defVal.canConvert<QString>()) {
                 str = QLatin1Char('\'') + defVal.toString() + QLatin1Char('\'');
             } else {
@@ -343,8 +347,8 @@ QString ColumnPrivate::defValString() const
         if (type < Bit) { // numeric values
             bool isInteger = false;
             bool isDouble = false;
-            const auto _i = defVal.toLongLong(&isInteger);
-            const auto _d = defVal.toDouble(&isDouble);
+            defVal.toLongLong(&isInteger);
+            defVal.toDouble(&isDouble);
             if (isInteger || isDouble) {
                 str = defValStr;
             } else {
