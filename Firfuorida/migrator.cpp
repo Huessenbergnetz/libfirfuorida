@@ -403,4 +403,9 @@ Error Migrator::lastError() const
     return d->lastError;
 }
 
+QVersionNumber Firfuorida::version()
+{
+    return QVersionNumber::fromString(QStringLiteral(FIRFUORIDA_VERSION));
+}
+
 #include "moc_migrator.cpp"

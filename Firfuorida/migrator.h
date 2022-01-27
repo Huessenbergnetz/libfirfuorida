@@ -190,6 +190,11 @@ public:
     Error lastError() const;
 };
 
+/*!
+ * \brief Returns the library version.
+ */
+FIRFUORIDA_LIBRARY QVersionNumber version();
+
 }
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(Firfuorida::Migrator::DatabaseFeatures)
