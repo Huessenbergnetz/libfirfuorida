@@ -44,7 +44,7 @@ target_compile_features(FirfuoridaQt${QT_VERSION_MAJOR} PUBLIC cxx_std_14)
 
 target_include_directories(FirfuoridaQt${QT_VERSION_MAJOR}
     PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/firfuorida-qt${QT_VERSION_MAJOR}>
 )
 
