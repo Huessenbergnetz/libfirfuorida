@@ -19,6 +19,8 @@
 #include "migrations/m20220119t181501_big.h"
 #include "migrations/m20220120t145652_tests1.h"
 #include "migrations/m20220121t083111_defaults.h"
+#include "migrations/m20220129t115726_foreignkey1.h"
+#include "migrations/m20220129t115731_foreignkey2.h"
 
 #define DB_NAME "mysqlmigtestdb"
 #define DB_USER "mysqlmigtester"
@@ -39,6 +41,7 @@ private Q_SLOTS:
     void testTinyCols();
     void testDefaultValues();
     void testMigration();
+    void testForeignKeys();
 
 private:
     Firfuorida::Migrator *m_testmigrator = nullptr;
@@ -561,6 +564,14 @@ void TestMySqlMigrations::testMigration()
 //    QVERIFY(m_testmigrator->rollback());
 //    QVERIFY(!tableExists(QStringLiteral("small")));
 //    QVERIFY(!tableExists(QStringLiteral("tiny")));
+}
+
+void TestMySqlMigrations::testForeignKeys()
+{
+    auto migrator = new Firfuorida::Migrator(QStringLiteral(DB_CONN), QStringLiteral("migrations"), this);
+    new M20220129T115726_Foreignkey1(migrator);
+    new M20220129T115731_Foreignkey2(migrator);
+    QVERIFY(migrator->migrate());
 }
 
 QTEST_MAIN(TestMySqlMigrations)

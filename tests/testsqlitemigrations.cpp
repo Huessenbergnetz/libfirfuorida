@@ -19,6 +19,8 @@
 #include "migrations/m20220119t181501_big.h"
 #include "migrations/m20220120t145652_tests1.h"
 #include "migrations/m20220121t083111_defaults.h"
+#include "migrations/m20220129t115726_foreignkey1.h"
+#include "migrations/m20220129t115731_foreignkey2.h"
 
 #define DB_CONN "sqlitemigtests"
 
@@ -36,6 +38,7 @@ private Q_SLOTS:
     void testTinyCols();
     void testDefaultValues();
     void testMigration();
+    void testForeignKeys();
 
 private:
     Firfuorida::Migrator *m_testmigrator = nullptr;
@@ -90,6 +93,11 @@ void TestSqliteMigrations::initTestCase()
         if (!db.open()) {
             qDebug() << db.lastError().text();
             QFAIL("Failed to establish database connection.");
+        }
+        QSqlQuery q(db);
+        if (!q.exec(QStringLiteral("PRAGMA foreign_keys = ON;"))) {
+            qDebug() << db.lastError().text();
+            QFAIL("Failed to enable foreign key pragma on SQLite database.");
         }
     }
 }
@@ -221,6 +229,14 @@ void TestSqliteMigrations::testMigration()
     QVERIFY(checkColumn(QStringLiteral("medium"), QStringLiteral("id"), QStringLiteral("integer"), TestMigrations::PrimaryKey|TestMigrations::AutoIncrement|TestMigrations::Unsigned));
     QVERIFY(tableExists(QStringLiteral("big")));
     QVERIFY(checkColumn(QStringLiteral("big"), QStringLiteral("id"), QStringLiteral("integer"), TestMigrations::PrimaryKey|TestMigrations::AutoIncrement|TestMigrations::Unsigned));
+}
+
+void TestSqliteMigrations::testForeignKeys()
+{
+    auto migrator = new Firfuorida::Migrator(QStringLiteral(DB_CONN), QStringLiteral("migrations"), this);
+    new M20220129T115726_Foreignkey1(migrator);
+    new M20220129T115731_Foreignkey2(migrator);
+    QVERIFY(migrator->migrate());
 }
 
 QTEST_MAIN(TestSqliteMigrations)

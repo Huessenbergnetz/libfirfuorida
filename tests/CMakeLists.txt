@@ -54,6 +54,10 @@ set(testmigration_SRCS
     migrations/m20220120t145652_tests1.cpp
     migrations/m20220121t083111_defaults.h
     migrations/m20220121t083111_defaults.cpp
+    migrations/m20220129t115726_foreignkey1.h
+    migrations/m20220129t115726_foreignkey1.cpp
+    migrations/m20220129t115731_foreignkey2.h
+    migrations/m20220129t115731_foreignkey2.cpp
 )
 
 function(firfuorida_testmigration _testname _link1 _link2 _link3)
