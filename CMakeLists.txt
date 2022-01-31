@@ -71,7 +71,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/FirfuoridaQt${QT_VERSION_MAJOR}Config.
 )
 install(EXPORT FirfuoridaTargets
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/FirfuoridaQt${QT_VERSION_MAJOR}/
-    FILE FirfuoridaTargets.cmake
+    FILE FirfuoridaQt${QT_VERSION_MAJOR}Targets.cmake
     NAMESPACE Firfuorida::
     COMPONENT development
 )
