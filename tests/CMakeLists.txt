@@ -58,6 +58,8 @@ set(testmigration_SRCS
     migrations/m20220129t115726_foreignkey1.cpp
     migrations/m20220129t115731_foreignkey2.h
     migrations/m20220129t115731_foreignkey2.cpp
+    migrations/m20220218t084654_drop_column.h
+    migrations/m20220218t084654_drop_column.cpp
 )
 
 function(firfuorida_testmigration _testname _link1 _link2 _link3)

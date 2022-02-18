@@ -478,6 +478,11 @@ public:
      * \endcode
      */
     Column* foreignKey(const QString &foreignKeyCol, const QString &referenceTable, const QString &referenceCol, const QString &constraintSymbol = QString(), const QString &indexName = QString());
+
+    /*!
+     * \brief Drops the column identfied by \a columnName from the table.
+     */
+    void dropColumn(const QString &columnName);
 };
 
 }

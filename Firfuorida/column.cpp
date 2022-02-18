@@ -383,14 +383,18 @@ QString ColumnPrivate::queryString() const
 {
     QString qs;
 
-    if (type == Invalid) {
-        return qs;
-    }
-
     QStringList parts;
     Q_Q(const Column);
 
-    if (operation == CreateColumn && type < Key) {
+    if ((operation == CreateColumn || operation == AddColumn) && type < Key) {
+        if (type == Invalid) {
+            return qs;
+        }
+
+        if (operation == AddColumn) {
+            parts << QStringLiteral("ADD") << QStringLiteral("COLUMN");
+        }
+
         parts << q->objectName();
         parts << typeString();
         if (type < Bit && _unsigned && dbType() != Migrator::SQLite) {
@@ -441,6 +445,10 @@ QString ColumnPrivate::queryString() const
     }
 
     if (operation == CreateColumn && type >= Key && type <= ForeignKey) {
+        if (type == Invalid) {
+            return qs;
+        }
+
         if (!q->objectName().isEmpty()) {
             parts << QStringLiteral("CONSTRAINT") << q->objectName();
         }
@@ -470,6 +478,10 @@ QString ColumnPrivate::queryString() const
             parts << QStringLiteral("COMMENT");
             parts << _comment;
         }
+    }
+
+    if (operation == DropColumn && type < Key) {
+        parts << QStringLiteral("DROP") << QStringLiteral("COLUMN") << q->objectName();
     }
 
     qs = parts.join(QChar(QChar::Space));

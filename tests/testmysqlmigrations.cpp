@@ -21,6 +21,7 @@
 #include "migrations/m20220121t083111_defaults.h"
 #include "migrations/m20220129t115726_foreignkey1.h"
 #include "migrations/m20220129t115731_foreignkey2.h"
+#include "migrations/m20220218t084654_drop_column.h"
 
 #define DB_NAME "mysqlmigtestdb"
 #define DB_USER "mysqlmigtester"
@@ -42,6 +43,7 @@ private Q_SLOTS:
     void testDefaultValues();
     void testMigration();
     void testForeignKeys();
+    void testDropColumn();
 
 private:
     Firfuorida::Migrator *m_testmigrator = nullptr;
@@ -572,6 +574,16 @@ void TestMySqlMigrations::testForeignKeys()
     new M20220129T115726_Foreignkey1(migrator);
     new M20220129T115731_Foreignkey2(migrator);
     QVERIFY(migrator->migrate());
+}
+
+void TestMySqlMigrations::testDropColumn()
+{
+    auto migrator = new Firfuorida::Migrator(QStringLiteral(DB_CONN), QStringLiteral("migrations"), this);
+    new M20220119t181049_Tiny(migrator);
+    new M20220218T084654_Drop_column(migrator);
+    QVERIFY(migrator->migrate());
+    QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("colToDrop"), QStringLiteral("int"), TestMigrations::NoOptions));
+    QVERIFY(migrator->rollback());
 }
 
 QTEST_MAIN(TestMySqlMigrations)

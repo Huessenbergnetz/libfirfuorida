@@ -53,6 +53,17 @@ QString TablePrivate::queryString() const
         qs = QStringLiteral("DROP TABLE ") + q->objectName();
     } else if (operation == DropTableIfExists) {
         qs = QStringLiteral("DROP TABLE IF EXISTS ") + q->objectName();
+    } else if (operation == ModifyTable) {
+        qs = QStringLiteral("ALTER TABLE ") + q->objectName() + QChar(QChar::Space);
+        const QList<Column*> cols = q->findChildren<Column*>(QString(), Qt::FindDirectChildrenOnly);
+        QStringList colParts;
+        for (Column *col : cols) {
+            const QString qs = col->d_func()->queryString();
+            if (!qs.isEmpty()) {
+                colParts << qs;
+            }
+        }
+        qs += colParts.join(QLatin1String(", "));
     } else if (operation == Raw) {
         qs = raw;
     }
@@ -675,6 +686,14 @@ Column* Table::foreignKey(const QStringList &foreignKeys, const QString &referen
 Column* Table::foreignKey(const QString &foreignKeyCol, const QString &referenceTable, const QString &referenceCol, const QString &constraintSymbol, const QString &indexName)
 {
     return foreignKey(QStringList(foreignKeyCol), referenceTable, QStringList(referenceCol), constraintSymbol, indexName);
+}
+
+void Table::dropColumn(const QString &columnName)
+{
+    auto c = new Column(this);
+    Q_ASSERT_X(!columnName.trimmed().isEmpty(), "drop column", "column name can not be empty");
+    c->setObjectName(columnName.trimmed());
+    c->d_func()->operation = ColumnPrivate::DropColumn;
 }
 
 #include "moc_table.cpp"
