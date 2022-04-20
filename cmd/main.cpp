@@ -9,6 +9,11 @@
 #include <QFile>
 #include <QTextStream>
 #include <QDateTime>
+#include <QFileInfo>
+#include <QDir>
+#include <QRegularExpression>
+#include <QRegularExpressionMatch>
+#include <algorithm>
 
 int main(int argc, char *argv[])
 {
@@ -22,6 +27,9 @@ int main(int argc, char *argv[])
 
     QCommandLineOption createMigration(QStringList({QStringLiteral("c"), QStringLiteral("create")}), QStringLiteral("Create a new migration class with the given name."), QStringLiteral("name"));
     parser.addOption(createMigration);
+
+    QCommandLineOption numberedMigration(QStringList({QStringLiteral("n"), QStringLiteral("number")}), QStringLiteral("Use ascending numbers instead of a date for sorting."));
+    parser.addOption(numberedMigration);
 
     parser.addHelpOption();
     parser.addVersionOption();
@@ -37,10 +45,34 @@ int main(int argc, char *argv[])
             return 1;
         }
 
-        name[0] = name.at(0).toUpper();
-        const QDateTime dt = QDateTime::currentDateTime();
-        const QString dtString = dt.toString(QStringLiteral("yyyyMMdd'T'HHmmss"));
-        const QString className = QLatin1Char('M') + dtString + QLatin1Char('_') + name;
+        QString counter;
+        if (parser.isSet(numberedMigration)) {
+            const QDir current = QDir::current();
+            const QFileInfoList fis = current.entryInfoList(QStringList({QStringLiteral("m*.cpp")}), QDir::Files|QDir::NoSymLinks|QDir::NoDotAndDotDot, QDir::Name);
+            if (fis.empty()) {
+                counter = QStringLiteral("0001");
+            } else {
+                int highest = 0;
+                static QRegularExpression rex = QRegularExpression(QStringLiteral("^m(\\d\\d\\d\\d)_\\w+"));
+                for (const QFileInfo &fi : fis) {
+                    const QRegularExpressionMatch match = rex.match(fi.baseName());
+                    if (match.hasMatch()) {
+                        bool ok = false;
+                        int n = match.captured(1).toInt(&ok);
+                        if (ok) {
+                            highest = std::max(highest, n);
+                        }
+                    }
+                }
+                highest++;
+                counter = QStringLiteral("%1").arg(highest, 4, 10, QLatin1Char('0'));
+            }
+        } else {
+            const QDateTime dt = QDateTime::currentDateTime();
+            counter = dt.toString(QStringLiteral("yyyyMMdd'T'HHmmss"));
+        }
+
+        const QString className = QLatin1Char('M') + counter + QLatin1Char('_') + name;
         const QString hfName = className.toLower() + QStringLiteral(".h");
         const QString cfName = className.toLower() + QStringLiteral(".cpp");
 
