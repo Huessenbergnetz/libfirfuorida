@@ -65,7 +65,7 @@ target_compile_definitions(FirfuoridaQt${QT_VERSION_MAJOR}
 )
 
 set_target_properties(FirfuoridaQt${QT_VERSION_MAJOR} PROPERTIES
-    EXPORT_NAME Firfuorida
+    EXPORT_NAME Core
     VERSION ${PROJECT_VERSION}
     SOVERSION ${FIRFUORIDA_API_LEVEL}
     PUBLIC_HEADER "${firfuorida_HEADERS}"
