@@ -31,8 +31,7 @@ jobs:
           - os: ubuntu-20.04
             ubuntu_name: focal
 
-
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-20.04
 
     steps:
     - uses: actions/checkout@v3
