@@ -309,7 +309,7 @@ QString ColumnPrivate::defValString() const
             }
         } else if (type >= TinyBlob && type <= LongBlob) { // blob type columns
             if (defVal.canConvert<QByteArray>()) {
-                str = QLatin1String("0x") + QString::fromLatin1(defVal.toByteArray().toHex());
+                str = QLatin1String("('0x") + QString::fromLatin1(defVal.toByteArray().toHex()) + QLatin1String("')");
             } else {
                 qCWarning(FIR_CORE) << "Invalid default value for column" << q->objectName() << "of type" << typeString() << ":" << defVal;
             }
