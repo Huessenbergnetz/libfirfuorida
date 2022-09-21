@@ -313,11 +313,11 @@ QString ColumnPrivate::defValString() const
             } else {
                 qCWarning(FIR_CORE) << "Invalid default value for column" << q->objectName() << "of type" << typeString() << ":" << defVal;
             }
-        } else if (type >= Char && type <= LongText) { // char and text type columns
+        } else if (type >= Char && type <= Json) { // char and text type columns
             if (defVal.canConvert<QString>()) {
                 QString _str = defVal.toString();
                 _str.replace(QLatin1Char('\''), QLatin1String("\\'"));
-                str = QLatin1Char('\'') + _str + QLatin1Char('\'');
+                str = QLatin1String("('") + _str + QLatin1String("')");
             } else {
                 qCWarning(FIR_CORE) << "Invalid default value for column" << q->objectName() << "of type" << typeString() << ":" << defVal;
             }

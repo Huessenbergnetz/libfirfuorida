@@ -42,6 +42,7 @@ public:
         Text,
         MediumText,
         LongText,
+        Json,
         Enum,
         Set,
         Boolean,
