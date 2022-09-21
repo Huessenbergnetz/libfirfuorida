@@ -100,7 +100,7 @@ function(firfuorida_testmigration _testname _link1 _link2 _link3)
             ${_link3}
     )
     set_property(TEST ${_testname} PROPERTY ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/Firfuorida")
-endfunction(firfuorida_test _testname _link1 _link2 _link3)
+endfunction(firfuorida_testmigration _testname _link1 _link2 _link3)
 
 firfuorida_test(testerrorobject "" "" "")
 firfuorida_testmigration(testmysqlmigrations "" "" "")
