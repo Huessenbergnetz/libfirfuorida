@@ -422,6 +422,10 @@ bool TestMySqlMigrations::checkColumn(const QString &table, const QString &colum
                     _colDef.chop(1);
                     _colDef.remove(0,1);
                 }
+                if (_colDef.contains(QRegularExpression(QStringLiteral("^_[A-Za-z0-9]+\\\\'")))) {
+                    _colDef.remove(QRegularExpression(QStringLiteral("^_[A-Za-z0-9]+\\\\'")));
+                    _colDef.remove(QRegularExpression(QStringLiteral("\\\\'$")));
+                }
                 if (_colDef != _defVal) {
                     qCritical("Unexpected default value on column %s: %s != %s", qUtf8Printable(column), qUtf8Printable(_colDef), qUtf8Printable(_defVal));
                     return false;
