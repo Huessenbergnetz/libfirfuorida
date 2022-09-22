@@ -423,7 +423,7 @@ bool TestMySqlMigrations::checkColumn(const QString &table, const QString &colum
                     _colDef.remove(0,1);
                 }
                 if (_colDef != _defVal) {
-                    qCritical("Unexpected default value on column: %s != %s", qUtf8Printable(_colDef), qUtf8Printable(_defVal), qUtf8Printable(column));
+                    qCritical("Unexpected default value on column %s: %s != %s", qUtf8Printable(column), qUtf8Printable(_colDef), qUtf8Printable(_defVal));
                     return false;
                 }
             }
@@ -541,7 +541,7 @@ void TestMySqlMigrations::testMigration()
     QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("id"), QStringLiteral("tinyint"), TestMigrations::PrimaryKey|TestMigrations::AutoIncrement|TestMigrations::Unsigned));
     QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyIntCol"), QStringLiteral("tinyint"), TestMigrations::Unique));
     QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyBlobCol"), QStringLiteral("tinyblob"), TestMigrations::Nullable));
-    if (m_testmigrator->isDbFeatureAvailable(Firfuorida::Migrator::DefValOnBlob)) {
+    if (m_testmigrator->isDbFeatureAvailable(Firfuorida::Migrator::DefValOnText)) {
         QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyTextCol"), QStringLiteral("tinytext"), TestMigrations::NoOptions, QStringLiteral("dummer schiss")));
     } else {
         QVERIFY(checkColumn(QStringLiteral("tiny"), QStringLiteral("tinyTextCol"), QStringLiteral("tinytext"), TestMigrations::NoOptions));
