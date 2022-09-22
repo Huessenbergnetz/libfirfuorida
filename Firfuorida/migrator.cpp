@@ -131,6 +131,7 @@ bool Migrator::initDatabase()
         d->dbFeatures |= CommentsOnTables;
         d->dbFeatures |= SetType;
         d->dbFeatures |= EnumType;
+        d->dbFeatures |= UnsignedInteger;
     }
         break;
     case MariaDB:
@@ -144,6 +145,7 @@ bool Migrator::initDatabase()
         d->dbFeatures |= CommentsOnTables;
         d->dbFeatures |= SetType;
         d->dbFeatures |= EnumType;
+        d->dbFeatures |= UnsignedInteger;
     }
         break;
     case ODBC:

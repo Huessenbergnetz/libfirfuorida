@@ -95,7 +95,8 @@ public:
         CommentsOnColumns   = 1 << 10, /**< Supports comments on columns. */
         CommentsOnTables    = 1 << 11, /**< Supports comments on tables. */
         SetType             = 1 << 12, /**< Supports SET data type. */
-        EnumType            = 1 << 13  /**< Supports ENUM data type. */
+        EnumType            = 1 << 13, /**< Supports ENUM data type. */
+        UnsignedInteger     = 1 << 14  /**< Supports unsigned integer data types. */
     };
     Q_DECLARE_FLAGS(DatabaseFeatures, DatabaseFeature)
     Q_FLAGS(DatabaseFeatures)
