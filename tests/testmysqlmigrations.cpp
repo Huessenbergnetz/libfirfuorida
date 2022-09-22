@@ -422,16 +422,8 @@ bool TestMySqlMigrations::checkColumn(const QString &table, const QString &colum
                     _colDef.chop(1);
                     _colDef.remove(0,1);
                 }
-                if (_defVal.compare(QLatin1String("CURRENT_TIMESTAMP"), Qt::CaseInsensitive) == 0) {
-                    if (_colDef.compare(QLatin1String("current_timestamp()")) != 0) {
-                        qCritical("Unexpected default value: %s != %s", qUtf8Printable(_colDef), "current_timestamp()");
-                        return false;
-                    } else {
-                        return true;
-                    }
-                }
                 if (_colDef != _defVal) {
-                    qCritical("Unexpected default value: %s != %s", qUtf8Printable(_colDef), qUtf8Printable(_defVal));
+                    qCritical("Unexpected default value on column: %s != %s", qUtf8Printable(_colDef), qUtf8Printable(_defVal), qUtf8Printable(column));
                     return false;
                 }
             }
@@ -535,7 +527,7 @@ void TestMySqlMigrations::testDefaultValues()
     new M20220121T083111_Defaults(migrator);
     QVERIFY(migrator->migrate());
     QVERIFY(checkColumn(QStringLiteral("defaultTests"), QStringLiteral("intCol"), QStringLiteral("int"), TestMigrations::NoOptions, 123));
-    QVERIFY(checkColumn(QStringLiteral("defaultTests"), QStringLiteral("dateCol"), QStringLiteral("datetime"), TestMigrations::NoOptions, QStringLiteral("CURRENT_TIMESTAMP")));
+    QVERIFY(checkColumn(QStringLiteral("defaultTests"), QStringLiteral("dateCol"), QStringLiteral("datetime"), TestMigrations::NoOptions, currentTimeStampDefVal()));
 
     QVariantMap vals;
     vals.insert(QStringLiteral("noDefValCol"), 12345);

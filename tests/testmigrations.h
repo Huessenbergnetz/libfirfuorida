@@ -34,6 +34,8 @@ protected:
     void setDbRootConn(const QString &dbRootConn);
     QString dbRootConn() const;
 
+    QString currentTimeStampDefVal() const;
+
 private:
     QString m_dbRootConn;
     QString m_dbName;

@@ -46,3 +46,12 @@ QString TestMigrations::dbRootConn() const
 {
     return m_dbRootConn;
 }
+
+QString TestMigrations::currentTimeStampDefVal() const
+{
+    if (dbType() == Firfuorida::Migrator::MySQL) {
+        return QStringLiteral("CURRENT_TIMESTAMP");
+    } else {
+        return QStringLiteral("current_timestamp()");
+    }
+}
