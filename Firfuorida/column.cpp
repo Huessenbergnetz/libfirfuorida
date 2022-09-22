@@ -576,7 +576,7 @@ Column* Column::autoIncrement(bool autoIncrement)
 Column* Column::unSigned(bool unSigned)
 {
     Q_D(Column);
-    if (d->dbType() != Migrator::MySQL) {
+    if (d->isDbFeatureAvailable(Migrator::UnsignedInteger)) {
         if (d->type < ColumnPrivate::Bit) {
             d->_unsigned = unSigned;
         } else {
@@ -592,7 +592,7 @@ Column* Column::unSigned(bool unSigned)
 Column* Column::charset(const QString &charset)
 {
     Q_D(Column);
-    if (d->dbType() != Migrator::MySQL) {
+    if (d->isDbFeatureAvailable(Migrator::CharsetOnColumn)) {
         if (d->type >= ColumnPrivate::Char && d->type <= ColumnPrivate::Set) {
             d->charset = charset;
         } else {
