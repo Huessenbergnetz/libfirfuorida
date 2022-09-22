@@ -112,7 +112,7 @@ void TestSqliteMigrations::cleanupTestCase()
 bool TestSqliteMigrations::tableExists(const QString &tableName) const
 {
     QSqlQuery q(QSqlDatabase::database(QStringLiteral(DB_CONN)));
-    if (q.prepare(QStringLiteral("SELECT COUNT(*) FROM main.sqlite_schema WHERE type = 'table' AND tbl_name = :tableName"))) {
+    if (q.prepare(QStringLiteral("SELECT COUNT(*) FROM sqlite_schema WHERE type = 'table' AND tbl_name = :tableName"))) {
         q.bindValue(QStringLiteral(":tableName"), tableName);
         if (q.exec()) {
             if (q.next()){
