@@ -34,7 +34,7 @@ target_compile_definitions(firfuoridacmd
 )
 
 set_target_properties(firfuoridacmd PROPERTIES
-    OUTPUT_NAME firfuorida
+    OUTPUT_NAME firfuorida-qt${QT_VERSION_MAJOR}
     CXX_STANDARD 11
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS NO
