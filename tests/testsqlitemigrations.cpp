@@ -51,6 +51,7 @@ private:
     Firfuorida::Migrator *m_testmigrator = nullptr;
     QTemporaryFile m_sqliteDbFile;
     QSqlDatabase m_db;
+    QString sqliteSchemaName;
 
     bool startDb();
     bool tableExists(const QString &tableName) const;
@@ -75,7 +76,27 @@ bool TestSqliteMigrations::startDb()
             return false;
         }
 
-        qDebug() << "Successfully created SQLite database at" << m_sqliteDbFile.fileName();
+        QSqlQuery q(db);
+        for (const QString &schemaName : {QStringLiteral("sqlite_schema"), QStringLiteral("sqlite_master")}) {
+            for (const QString &mainPrefix : {QStringLiteral("main."), QString()}) {
+                if (q.exec(QStringLiteral("SELECT * FROM %1%2").arg(mainPrefix, schemaName))) {
+                    sqliteSchemaName = mainPrefix + schemaName;
+                }
+                if (!sqliteSchemaName.isEmpty()) {
+                    break;
+                }
+            }
+            if (!sqliteSchemaName.isEmpty()) {
+                break;
+            }
+        }
+
+        if (sqliteSchemaName.isEmpty()) {
+            qDebug() << "Can not find the name of the SQLite schema table";
+            return false;
+        }
+
+        qDebug() << "Successfully created SQLite database at" << m_sqliteDbFile.fileName() << ", schema table name is" << sqliteSchemaName;
     }
     QSqlDatabase::removeDatabase(initConName);
 
@@ -117,7 +138,7 @@ void TestSqliteMigrations::cleanupTestCase()
 bool TestSqliteMigrations::tableExists(const QString &tableName) const
 {
     QSqlQuery q(QSqlDatabase::database(QStringLiteral(DB_CONN)));
-    if (q.prepare(QStringLiteral("SELECT COUNT(*) FROM sqlite_schema WHERE type = 'table' AND tbl_name = :tableName"))) {
+    if (q.prepare(QStringLiteral("SELECT COUNT(*) FROM %1 WHERE type = 'table' AND tbl_name = :tableName").arg(sqliteSchemaName))) {
         q.bindValue(QStringLiteral(":tableName"), tableName);
         if (q.exec()) {
             if (q.next()){
