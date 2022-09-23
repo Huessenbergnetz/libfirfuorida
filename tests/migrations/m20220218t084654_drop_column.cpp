@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: (C) 2019-2022 Matthias Fehring <https://www.huessenbergnetz.de>
+ * SPDX-License-Identifier: LGPL-3.0-or-later
+ */
+
 #include "m20220218t084654_drop_column.h"
 
 M20220218T084654_Drop_column::M20220218T084654_Drop_column(Firfuorida::Migrator *parent) :

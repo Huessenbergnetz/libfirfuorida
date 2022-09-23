@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: (C) 2019-2022 Matthias Fehring <https://www.huessenbergnetz.de>
+ * SPDX-License-Identifier: LGPL-3.0-or-later
+ */
+
 #ifndef M20220129T115726_FOREIGNKEY1_H
 #define M20220129T115726_FOREIGNKEY1_H
 
