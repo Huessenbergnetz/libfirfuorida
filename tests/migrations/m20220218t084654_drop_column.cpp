@@ -19,7 +19,7 @@ M20220218T084654_Drop_column::~M20220218T084654_Drop_column()
 void M20220218T084654_Drop_column::up()
 {
     auto t = table(QStringLiteral("tiny"));
-    t->integer(QStringLiteral("colToDrop"));
+    t->integer(QStringLiteral("colToDrop"))->defaultValue(0);
 }
 
 void M20220218T084654_Drop_column::down()
