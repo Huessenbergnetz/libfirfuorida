@@ -40,7 +40,7 @@ add_library(FirfuoridaQt${QT_VERSION_MAJOR} SHARED
 
 add_library(FirfuoridaQt${QT_VERSION_MAJOR}::Core ALIAS FirfuoridaQt${QT_VERSION_MAJOR})
 
-target_compile_features(FirfuoridaQt${QT_VERSION_MAJOR} PUBLIC cxx_std_14)
+target_compile_features(FirfuoridaQt${QT_VERSION_MAJOR} PUBLIC $<IF:$<VERSION_GREATER_EQUAL:${QT_VERSION},"6.0.0">,cxx_std_17,cxx_std_14>)
 
 target_include_directories(FirfuoridaQt${QT_VERSION_MAJOR}
     PUBLIC

@@ -35,10 +35,9 @@ target_compile_definitions(firfuoridacmd
 
 set_target_properties(firfuoridacmd PROPERTIES
     OUTPUT_NAME firfuorida-qt${QT_VERSION_MAJOR}
-    CXX_STANDARD 11
-    CXX_STANDARD_REQUIRED YES
-    CXX_EXTENSIONS NO
 )
+
+target_compile_features(firfuoridacmd PRIVATE $<IF:$<VERSION_GREATER_EQUAL:${QT_VERSION},"6.0.0">,cxx_std_17,cxx_std_14>)
 
 if (ENABLE_ASAN)
     target_link_libraries(firfuoridacmd
