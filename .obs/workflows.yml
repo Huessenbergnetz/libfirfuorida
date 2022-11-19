@@ -6,6 +6,9 @@ rebuild_master:
     - trigger_services:
         project: home:buschmann23:Qt5:devel
         package: libFirfuoridaQt5
+    - trigger_services:
+        project: home:buschmann23:Qt6:devel
+        package: libFirfuoridaQt6
   filters:
     event: push
     branches:
