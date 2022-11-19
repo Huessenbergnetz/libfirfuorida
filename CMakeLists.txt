@@ -168,7 +168,7 @@ if (BUILD_DOCS)
         ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Generate HTML documentation for online usage"
     )
-    message(STATUS "Adding make target webdocs")
+    message(STATUS "Adding build target webdocs")
 
     set(DOXYGEN_HTML_TIMESTAMP "NO")
     set(DOXYGEN_TAGFILES ${LOCALHTMLTAGS})
@@ -177,11 +177,12 @@ if (BUILD_DOCS)
         ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Generate HTML documentation for local usage"
     )
-    message(STATUS "Adding make target htmldocs")
+    message(STATUS "Adding build target htmldocs")
 
-    find_program(DOXYGEN_QHG_LOCATION NAMES qhelpgenerator-qt${QT_VERSION_MAJOR} qhelpgenerator${QT_VERSION_MAJOR} qhelpgenerator)
+    execute_process(COMMAND ${QMAKE_EXE_PATH} -query QT_INSTALL_LIBEXECS OUTPUT_VARIABLE QT_INSTALL_LIBEXECS OUTPUT_STRIP_TRAILING_WHITESPACE)
+    execute_process(COMMAND ${QMAKE_EXE_PATH} -query QT_INSTALL_BINS OUTPUT_VARIABLE QT_INSTALL_BINS OUTPUT_STRIP_TRAILING_WHITESPACE)
+    find_program(DOXYGEN_QHG_LOCATION NAMES qhelpgenerator-qt${QT_VERSION_MAJOR} qhelpgenerator${QT_VERSION_MAJOR} qhelpgenerator HINTS ${QT_INSTALL_LIBEXECS} ${QT_INSTALL_BINS})
     if(DOXYGEN_QHG_LOCATION)
-        message(STATUS "qhelpgenerator found. QCH docs building available.")
         set(DOXYGEN_TAGFILES ${QCHTAGS})
         set(DOXYGEN_HTML_OUTPUT "qtdocs")
         set(DOXYGEN_GENERATE_QHP "YES")
@@ -193,7 +194,7 @@ if (BUILD_DOCS)
             ${CMAKE_CURRENT_SOURCE_DIR}
             COMMENT "Generate Qt QCH documentation for local usage"
         )
-        message(STATUS "Adding make target qtdocs")
+        message(STATUS "Adding build target qtdocs")
     endif(DOXYGEN_QHG_LOCATION)
 
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/firfuorida.qch
