@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
         cfOut << "#include \"" << hfName << '"' << '\n';
         cfOut << '\n';
         cfOut << className << "::" << className << "(Firfuorida::Migrator *parent) :" << '\n';
-        cfOut << "    Firfuorida::Migration(parent)" << '\n';
+        cfOut << "    Firfuorida::Migration{parent}" << '\n';
         cfOut << '{' << '\n';
         cfOut << '\n';
         cfOut << '}' << '\n';
