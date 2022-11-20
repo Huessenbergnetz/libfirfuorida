@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
         hfOut << "#ifndef " << className.toUpper() << "_H" << '\n';
         hfOut << "#define " << className.toUpper() << "_H" << '\n';
         hfOut << '\n';
-        hfOut << "#include <Firfuorida/migration.h>" << '\n';
+        hfOut << "#include <Firfuorida/Migration>" << '\n';
         hfOut << '\n';
         hfOut << "class " << className << " : public Firfuorida::Migration" << '\n';
         hfOut << '{' << '\n';
