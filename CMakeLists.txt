@@ -58,15 +58,14 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "libfirfuorida default install prefix" FORCE)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
-#set(CMAKE_INSTALL_LIBDIR "${CMAKE_INSTALL_PREFIX}/lib/${CMAKE_LIBRARY_ARCHITECTURE}" CACHE PATH "Library install directory")
-
 # cmake config files
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/FirfuoridaQt${QT_VERSION_MAJOR}ConfigVersion.cmake
+    VERSION ${firfuorida_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/Firfuorida-config.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/FirfuoridaQt${QT_VERSION_MAJOR}Config.cmake
-    @ONLY
-)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/Firfuorida-config-version.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/FirfuoridaQt${QT_VERSION_MAJOR}ConfigVersion.cmake
     @ONLY
 )
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/FirfuoridaQt${QT_VERSION_MAJOR}Config.cmake
