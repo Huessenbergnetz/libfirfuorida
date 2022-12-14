@@ -64,17 +64,17 @@ write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/FirfuoridaQt${QT_VE
     VERSION ${firfuorida_VERSION}
     COMPATIBILITY AnyNewerVersion
 )
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/Firfuorida-config.cmake.in
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/Firfuorida-config.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/FirfuoridaQt${QT_VERSION_MAJOR}Config.cmake
-    @ONLY
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/FirfuoridaQt${QT_VERSION_MAJOR}
 )
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/FirfuoridaQt${QT_VERSION_MAJOR}Config.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/FirfuoridaQt${QT_VERSION_MAJOR}ConfigVersion.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/FirfuoridaQt${QT_VERSION_MAJOR}/
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/FirfuoridaQt${QT_VERSION_MAJOR}
     COMPONENT development
 )
 install(EXPORT FirfuoridaTargets
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/FirfuoridaQt${QT_VERSION_MAJOR}/
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/FirfuoridaQt${QT_VERSION_MAJOR}
     FILE FirfuoridaQt${QT_VERSION_MAJOR}Targets.cmake
     NAMESPACE FirfuoridaQt${QT_VERSION_MAJOR}::
     COMPONENT development
