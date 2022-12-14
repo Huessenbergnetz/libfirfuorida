@@ -7,6 +7,7 @@
 #define FIRFUORIDA_COLUMN_H
 
 #include "firfuorida_global.h"
+#include "firfuorida_export.h"
 #include <QObject>
 #include <QVariant>
 #include <QtGlobal>
@@ -27,7 +28,7 @@ class Table;
  *
  * \headerfile "" <Firfuorida/Column>
  */
-class FIRFUORIDA_LIBRARY Column : public QObject
+class FIRFUORIDA_EXPORT Column : public QObject
 {
     Q_OBJECT
     Q_DISABLE_COPY(Column)

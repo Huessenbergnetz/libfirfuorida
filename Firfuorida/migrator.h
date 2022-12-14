@@ -7,6 +7,7 @@
 #define MIGRATOR_H
 
 #include "firfuorida_global.h"
+#include "firfuorida_export.h"
 #include <QObject>
 #include <QSqlDatabase>
 #include <QVersionNumber>
@@ -35,7 +36,7 @@ class MigratorPrivate;
  *
  * \headerfile "" <Firfuorida/Migrator>
  */
-class FIRFUORIDA_LIBRARY Migrator : public QObject
+class FIRFUORIDA_EXPORT Migrator : public QObject
 {
     Q_OBJECT
     Q_DISABLE_COPY(Migrator)
@@ -195,7 +196,7 @@ public:
 /*!
  * \brief Returns the library version.
  */
-FIRFUORIDA_LIBRARY QVersionNumber version();
+FIRFUORIDA_EXPORT QVersionNumber version();
 
 }
 

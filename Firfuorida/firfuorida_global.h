@@ -8,12 +8,6 @@
 
 #include <QtGlobal>
 
-#if defined(firfuorida_EXPORTS)
-#  define FIRFUORIDA_LIBRARY Q_DECL_EXPORT
-#else
-#  define FIRFUORIDA_LIBRARY Q_DECL_IMPORT
-#endif
-
 // until Qt 5.9, Q_DECLARE_PRIVATE_D misses the qGetPtrHelper
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
 #define F_DECLARE_PRIVATE_D(Dptr, Class) Q_DECLARE_PRIVATE_D(Dptr, Class)

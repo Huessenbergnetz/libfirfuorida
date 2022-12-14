@@ -4,8 +4,8 @@
 # - Config information for Firfuorida
 # This file defines:
 #
-#  FIRFUORIDA_INCLUDE_DIR - the Firfuorida include directory
-#  FIRFUORIDA_LIBRARY - Link these to use Firfuorida
+#  FirfuoridaQt@QT_VERSION_MAJOR@_INCLUDE_DIR - the Firfuorida include directory
+#  FirfuoridaQt@QT_VERSION_MAJOR@_LIBRARY - Link these to use Firfuorida
 
 SET(prefix "@CMAKE_INSTALL_PREFIX@")
 SET(exec_prefix "@CMAKE_INSTALL_PREFIX@")

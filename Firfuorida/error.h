@@ -7,6 +7,7 @@
 #define FIRFUORIDA_ERROR_H
 
 #include "firfuorida_global.h"
+#include "firfuorida_export.h"
 #include <QString>
 #include <QSharedDataPointer>
 #include <QSqlError>
@@ -25,7 +26,7 @@ class ErrorData;
  *
  * \headerfile "" <Firfuorida/Error>
  */
-class FIRFUORIDA_LIBRARY Error
+class FIRFUORIDA_EXPORT Error
 {
 public:
     /*!
@@ -118,6 +119,6 @@ protected:
  * \relates Firfuorida::Error
  * \brief Writes the text() of \a error to the \a dbg stream and returns the stream.
  */
-FIRFUORIDA_LIBRARY QDebug operator<<(QDebug dbg, const Firfuorida::Error &error);
+FIRFUORIDA_EXPORT QDebug operator<<(QDebug dbg, const Firfuorida::Error &error);
 
 #endif // FIRFUORIDA_ERROR_H

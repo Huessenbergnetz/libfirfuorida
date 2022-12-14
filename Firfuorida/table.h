@@ -7,6 +7,7 @@
 #define FIRFUORIDA_TABLE_H
 
 #include "firfuorida_global.h"
+#include "firfuorida_export.h"
 #include "column.h"
 #include <QObject>
 
@@ -29,7 +30,7 @@ class Migration;
  *
  * \headerfile "" <Firfuorida/Table>
  */
-class FIRFUORIDA_LIBRARY Table : public QObject
+class FIRFUORIDA_EXPORT Table : public QObject
 {
     Q_OBJECT
     Q_DISABLE_COPY(Table)

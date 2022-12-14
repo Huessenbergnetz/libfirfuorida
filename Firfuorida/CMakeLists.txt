@@ -11,6 +11,7 @@ set(firfuorida_SRC
 
 set(firfuorida_HEADERS
     firfuorida_global.h
+    ${CMAKE_CURRENT_BINARY_DIR}/firfuorida_export.h
     logging.h
     migrator.h
     Migrator
@@ -39,6 +40,8 @@ add_library(FirfuoridaQt${QT_VERSION_MAJOR} SHARED
 )
 
 add_library(FirfuoridaQt${QT_VERSION_MAJOR}::Core ALIAS FirfuoridaQt${QT_VERSION_MAJOR})
+
+generate_export_header(FirfuoridaQt${QT_VERSION_MAJOR} BASE_NAME firfuorida)
 
 target_compile_features(FirfuoridaQt${QT_VERSION_MAJOR} PUBLIC $<IF:$<VERSION_GREATER_EQUAL:${QT_VERSION},"6.0.0">,cxx_std_17,cxx_std_14>)
 

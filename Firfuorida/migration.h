@@ -7,6 +7,7 @@
 #define FIRFUORIDA_MIGRATION_H
 
 #include "firfuorida_global.h"
+#include "firfuorida_export.h"
 #include "table.h"
 #include "migrator.h"
 #include "error.h"
@@ -41,7 +42,7 @@ class MigrationPrivate;
  *
  * \headerfile "" <Firfuorida/Migration>
  */
-class FIRFUORIDA_LIBRARY Migration : public QObject
+class FIRFUORIDA_EXPORT Migration : public QObject
 {
     Q_OBJECT
     Q_DISABLE_COPY(Migration)
