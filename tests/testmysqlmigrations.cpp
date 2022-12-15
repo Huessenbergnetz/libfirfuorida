@@ -38,7 +38,7 @@ class TestMySqlMigrations : public TestMigrations
     Q_OBJECT
 public:
     TestMySqlMigrations(QObject *parent = nullptr) : TestMigrations(parent) {}
-    ~TestMySqlMigrations() override = default;
+    ~TestMySqlMigrations() override;
 
 private Q_SLOTS:
     void initTestCase();
@@ -62,7 +62,6 @@ private:
     int m_mysqlInitTimeout = 300000;
 
     bool startDb();
-    bool stopDb();
     bool createDatabase(const QString &name, const QString &user, const QString &password);
 
     QString mysqlSocketPath() const;
@@ -77,6 +76,12 @@ private:
 
     bool testInsert(const QString &table, const QVariantMap &values);
 };
+
+TestMySqlMigrations::~TestMySqlMigrations()
+{
+    m_mysqlProcess.terminate();
+    m_mysqlProcess.waitForFinished();
+}
 
 bool TestMySqlMigrations::startDb()
 {
@@ -253,12 +258,6 @@ bool TestMySqlMigrations::startDb()
     qDebug() << "Socket file:" << m_mysqlSocketDir.filePath(QStringLiteral("mysql.sock"));
 
     return true;
-}
-
-bool TestMySqlMigrations::stopDb()
-{
-    m_mysqlProcess.terminate();
-    return m_mysqlProcess.exitCode() == 0;
 }
 
 bool TestMySqlMigrations::createDatabase(const QString &name, const QString &user, const QString &password)
