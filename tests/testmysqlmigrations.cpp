@@ -60,6 +60,7 @@ private:
     QProcess m_mysqlProcess;
     const int m_mysqlPort{46000};
     int m_mysqlInitTimeout = 300000;
+    int m_mysqlStartTimeout = 30000;
 
     bool startDb();
     bool createDatabase(const QString &name, const QString &user, const QString &password);
@@ -237,14 +238,14 @@ bool TestMySqlMigrations::startDb()
     qDebug() << "Executing:" << m_mysqlProcess.program() << m_mysqlProcess.arguments().join(QChar(QChar::Space));
     m_mysqlProcess.start();
 
-    qDebug() << "Wating 5 seconds for the server to start up and socket to appear at" << socketFi.filePath();
+    qDebug() << "Wating" << m_mysqlStartTimeout << "miliseconds for the server to start up and socket to appear at" << socketFi.filePath();
     auto cur = QDateTime::currentDateTime();
-    while (!socketFi.exists() && (cur.msecsTo(QDateTime::currentDateTime()) < 5000)) {
+    while (!socketFi.exists() && (cur.msecsTo(QDateTime::currentDateTime()) < m_mysqlStartTimeout)) {
 
     }
 
     if (!socketFi.exists()) {
-        qCritical() << "Failed to start mysql server within 5 seconds.";
+        qCritical() << "Failed to start mysql server within" << m_mysqlStartTimeout << "seconds.";
         qDebug() << "MySQL startup params:" << m_mysqlProcess.arguments().join(QChar(QChar::Space));
         m_mysqlLogDir.setAutoRemove(false);
         return false;
@@ -488,7 +489,18 @@ void TestMySqlMigrations::initTestCase()
         if (ok) {
             m_mysqlInitTimeout = timeout;
         } else {
-            qWarning() << "FIRFUORIDA_TEST_MYSQL_INIT_TIMEOUT variable does not contain a valid integer value. Using default value.";
+            qWarning() << "FIRFUORIDA_TEST_MYSQL_INIT_TIMEOUT variable does not contain a valid integer value. Using default value:" << m_mysqlInitTimeout;
+        }
+    }
+
+    const QByteArray mysqlStartTimeoutEnvVal = qgetenv("FIRFUORIDA_TEST_MYSQL_START_TIMEOUT");
+    if (!mysqlStartTimeoutEnvVal.isEmpty()) {
+        bool ok = false;
+        int timeout = mysqlStartTimeoutEnvVal.toInt(&ok);
+        if (ok) {
+            m_mysqlStartTimeout = timeout;
+        } else {
+            qWarning() << "FIRFUORIDA_TEST_MYSQL_START_TIMEOUT variable does not contain a valid integer value. Using default value:" << m_mysqlStartTimeout;
         }
     }
 
