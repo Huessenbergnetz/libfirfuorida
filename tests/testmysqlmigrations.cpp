@@ -59,6 +59,7 @@ private:
     QTemporaryFile m_mysqlConfigFile;
     QProcess m_mysqlProcess;
     const int m_mysqlPort{46000};
+    int m_mysqlInitTimeout = 300000;
 
     bool startDb();
     bool stopDb();
@@ -203,10 +204,11 @@ bool TestMySqlMigrations::startDb()
     }
 
     qDebug() << "Executing:" << dbInitCommand << mysqlInstallArgs.join(QChar(QChar::Space));
+    qDebug() << "Please note that it can take up to 5 minutes to initialize the MySQL/MariaDB server";
 
     QScopedPointer<QProcess> mysqlInit(new QProcess(this));
     mysqlInit->start(dbInitCommand, mysqlInstallArgs);
-    if (!mysqlInit->waitForFinished()) {
+    if (!mysqlInit->waitForFinished(m_mysqlInitTimeout)) {
         qCritical() << "Can not install initial mysql database.";
         qDebug() << mysqlInit->errorString();
         qDebug() << mysqlInit->readAll();
@@ -480,6 +482,17 @@ bool TestMySqlMigrations::testInsert(const QString &table, const QVariantMap &va
 
 void TestMySqlMigrations::initTestCase()
 {
+    const QByteArray mysqlInitTimeoutEnvVal = qgetenv("FIRFUORIDA_TEST_MYSQL_INIT_TIMEOUT");
+    if (!mysqlInitTimeoutEnvVal.isEmpty()) {
+        bool ok = false;
+        int timeout = mysqlInitTimeoutEnvVal.toInt(&ok);
+        if (ok) {
+            m_mysqlInitTimeout = timeout;
+        } else {
+            qWarning() << "FIRFUORIDA_TEST_MYSQL_INIT_TIMEOUT variable does not contain a valid integer value. Using default value.";
+        }
+    }
+
     if (!startDb()) {
         QFAIL("Failed to start MySQL.");
     }
