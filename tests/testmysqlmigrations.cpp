@@ -161,7 +161,7 @@ bool TestMySqlMigrations::startDb()
             mysqlConfOut << "innodb_file_format=Barracuda" << '\n';
         }
         if (dbType() == Firfuorida::Migrator::MySQL && dbVersion() >= QVersionNumber(8,0,0)) {
-            mysqlConfOut << "basedir=" << m_mysqlDataDir.path() << '\n';
+//            mysqlConfOut << "basedir=" << m_mysqlDataDir.path() << '\n';
             mysqlConfOut << "default_authentication_plugin=mysql_native_password" << '\n';
         }
         mysqlConfOut << "innodb_file_per_table=ON" << '\n';
