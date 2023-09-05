@@ -142,7 +142,7 @@ bool Migrator::initDatabase()
             d->dbFeatures |= DefValOnBlob;
         }
         if (d->dbVersion >= QVersionNumber(10,2,7)) {
-            d->dbFeatures | JSONTypes;
+            d->dbFeatures |= JSONTypes;
         }
         d->dbFeatures |= ForeignKeys;
         d->dbFeatures |= CommentsOnColumns;
