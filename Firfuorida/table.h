@@ -338,6 +338,15 @@ public:
      */
     Column* longText(const QString &columnName);
     /*!
+     * \brief Creates/modifies a JSON column with given \a columnName and returns a pointer to the Column object.
+     * \note On some RDBMS like MariaDB and SQLite, the JSON data type is an alias for a text type.
+     * \par MySQL statement
+     * \code{.sql}
+     * columnName JSON
+     * \endcode
+     */
+    Column* json(const QString &columnName);
+    /*!
      * \brief Creates/modifies an enum column with given \a columnName and \a enums and returns a pointer to the Column object.
      * \par MySQL statement
      * \code{.sql}

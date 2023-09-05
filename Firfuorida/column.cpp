@@ -101,6 +101,9 @@ QString ColumnPrivate::typeString() const
         case LongText:
             str = QStringLiteral("LONGTEXT");
             break;
+        case Json:
+            str = QStringLiteral("JSON");
+            break;
         case Enum:
             str = QStringLiteral("ENUM");
             break;
@@ -161,6 +164,7 @@ QString ColumnPrivate::typeString() const
         case Text:
         case MediumText:
         case LongText:
+        case Json:
         case Binary:
         case VarBinary:
             str = QStringLiteral("TEXT");

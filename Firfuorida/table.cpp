@@ -557,6 +557,22 @@ Column* Table::longText(const QString &columnName)
     return c;
 }
 
+Column* Table::json(const QString &columnName)
+{
+    Q_ASSERT_X(!columnName.trimmed().isEmpty(), "json column", "column name can not be empty");
+    Q_D(Table);
+    if (d->isDbFeatureAvailable(Migrator::JSONTypes)) {
+        auto c = new Column(this);
+        c->setObjectName(columnName.trimmed());
+        c->d_func()->operation = (d->operation == TablePrivate::CreateTable || d->operation == TablePrivate::CreateTableIfNotExists) ? ColumnPrivate::CreateColumn : ColumnPrivate::AddColumn;
+        c->d_func()->type = ColumnPrivate::Json;
+        return c;
+    } else {
+        qCWarning(FIR_CORE, "%s %s does not support the JSON data type. Falling back to LONGTEXT data type.", qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion().toString()));
+        return longText(columnName);
+    }
+}
+
 Column* Table::enumCol(const QString &columnName, const QStringList &enums)
 {
     auto c = new Column(this);
