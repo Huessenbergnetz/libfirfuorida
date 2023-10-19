@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
         hfOut << "    Q_DISABLE_COPY(" << className << ')' << '\n';
         hfOut << "public:" << '\n';
         hfOut << "    explicit " << className << "(Firfuorida::Migrator *parent);" << '\n';
-        hfOut << "    ~" << className << "() final;" << '\n';
+        hfOut << "    ~" << className << "() override = default;" << '\n';
         hfOut << '\n';
         hfOut << "    void up() final;" << '\n';
         hfOut << "    void down() final;" << '\n';
@@ -123,13 +123,8 @@ int main(int argc, char *argv[])
         QTextStream cfOut(&cf);
         cfOut << "#include \"" << hfName << '"' << '\n';
         cfOut << '\n';
-        cfOut << className << "::" << className << "(Firfuorida::Migrator *parent) :" << '\n';
-        cfOut << "    Firfuorida::Migration{parent}" << '\n';
-        cfOut << '{' << '\n';
-        cfOut << '\n';
-        cfOut << '}' << '\n';
-        cfOut << '\n';
-        cfOut << className << "::~" << className << "()" << '\n';
+        cfOut << className << "::" << className << "(Firfuorida::Migrator *parent)" << '\n';
+        cfOut << "    : Firfuorida::Migration{parent}" << '\n';
         cfOut << '{' << '\n';
         cfOut << '\n';
         cfOut << '}' << '\n';
