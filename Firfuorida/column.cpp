@@ -228,6 +228,14 @@ QString ColumnPrivate::defValString() const
             str = defValStr;
             return str;
         }
+        if (defValStr.compare(QLatin1String("NULL"), Qt::CaseInsensitive) == 0) {
+            if (_nullable) {
+                str = defValStr;
+            } else {
+                qCWarning(FIR_CORE) << "Invalid default value NULL for column" << q->objectName() << "of type" << typeString() << ": not nullable";
+            }
+            return str;
+        }
 
         if (type < Bit) { // numeric columns
             bool isDouble = false;
@@ -339,6 +347,14 @@ QString ColumnPrivate::defValString() const
         if (!defValStr.isEmpty()) {
             if (defValStr.compare(QLatin1String("CURRENT_TIME"), Qt::CaseInsensitive) == 0 || defValStr.compare(QLatin1String("CURRENT_DATE"), Qt::CaseInsensitive) == 0 || defValStr.compare(QLatin1String("CURRENT_TIMESTAMP"), Qt::CaseInsensitive) == 0) {
                 str = defValStr;
+                return str;
+            }
+            if (defValStr.compare(QLatin1String("NULL"), Qt::CaseInsensitive) == 0) {
+                if (_nullable) {
+                    str = defValStr;
+                } else {
+                    qCWarning(FIR_CORE) << "Invalid default value NULL for column" << q->objectName() << "of type" << typeString() << ": not nullable";
+                }
                 return str;
             }
         }
