@@ -201,7 +201,7 @@ QString ColumnPrivate::typeString() const
             str = QStringLiteral("PRIMARY KEY");
             break;
         case UniqueKey:
-            str = QStringLiteral("UNIQUE KEY");
+            str = QStringLiteral("UNIQUE");
             break;
         case ForeignKey:
             str = QStringLiteral("FOREIGN KEY");
