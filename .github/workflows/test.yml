@@ -27,14 +27,9 @@ jobs:
         config:
           - qt_version: "5.15.*"
           - qt_version: "6.5.*"
-          - qt_version: "6.8.*"
+          - qt_version: "6.8.1"
 
     steps:
-      - name: Install Dependencies
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y mariadb-server postgresql
-
       - name: Install Qt with options and default aqtversion
         uses: jurplel/install-qt-action@v4
         with:
