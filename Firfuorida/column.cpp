@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: (C) 2019-2022 Matthias Fehring <https://www.huessenbergnetz.de>
+ * SPDX-FileCopyrightText: (C) 2019-2025 Matthias Fehring <https://www.huessenbergnetz.de>
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
@@ -14,6 +14,7 @@
 #include "migration.h"
 
 using namespace Firfuorida;
+using namespace Qt::Literals::StringLiterals;
 
 QString ColumnPrivate::typeString() const
 {
@@ -24,15 +25,18 @@ QString ColumnPrivate::typeString() const
             str = QStringLiteral("TINYINT");
             break;
         case SmallInt:
+        case SmallSerial:
             str = QStringLiteral("SMALLINT");
             break;
         case MediumInt:
             str = QStringLiteral("MEDIUMINT");
             break;
         case Int:
+        case Serial:
             str = QStringLiteral("INT");
             break;
         case BigInt:
+        case BigSerial:
             str = QStringLiteral("BIGINT");
             break;
         case Decimal:
@@ -153,9 +157,12 @@ QString ColumnPrivate::typeString() const
         switch(type) {
         case TinyInt:
         case SmallInt:
+        case SmallSerial:
         case MediumInt:
         case Int:
+        case Serial:
         case BigInt:
+        case BigSerial:
             str = QStringLiteral("INTEGER");
             break;
         case Char:
@@ -210,6 +217,63 @@ QString ColumnPrivate::typeString() const
         case SpatialIndex:
         case Invalid:
             return str;
+        }
+    } else if (dbType() == Migrator::PSQL) {
+        switch (type) {
+        case TinyInt:
+        case SmallInt:
+            str = u"SMALLINT"_s;
+            break;
+        case SmallSerial:
+            str = u"SMALLSERIAL"_s;
+            break;
+        case MediumInt:
+        case Int:
+            str = u"INTEGER"_s;
+            break;
+        case Serial:
+            str = u"SERIAL"_s;
+            break;
+        case BigInt:
+            str = u"BIGINT"_s;
+            break;
+        case BigSerial:
+            str = u"BIGSERIAL"_s;
+            break;
+        case Decimal:
+        case Numeric:
+        case Float:
+        case Double:
+        case Bit:
+        case Date:
+        case DateTime:
+        case Timestamp:
+        case Time:
+        case Year:
+        case Binary:
+        case VarBinary:
+        case TinyBlob:
+        case Blob:
+        case MediumBlob:
+        case LongBlob:
+        case Char:
+        case VarChar:
+        case TinyText:
+        case Text:
+        case MediumText:
+        case LongText:
+        case Json:
+        case Enum:
+        case Set:
+        case Boolean:
+        case Key:
+        case FulltextIndex:
+        case SpatialIndex:
+        case PrimaryKey:
+        case UniqueKey:
+        case ForeignKey:
+        default:
+            break;
         }
     }
 

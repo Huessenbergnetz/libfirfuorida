@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: (C) 2019-2022 Matthias Fehring <https://www.huessenbergnetz.de>
+ * SPDX-FileCopyrightText: (C) 2019-2025 Matthias Fehring <https://www.huessenbergnetz.de>
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
@@ -9,10 +9,12 @@
 #include <QSqlError>
 #include <limits>
 #include "logging.h"
+#include <QRegularExpression>
 
 Q_LOGGING_CATEGORY(FIR_CORE, "libfirfuorida.core")
 
 using namespace Firfuorida;
+using namespace Qt::Literals::StringLiterals;
 
 void MigratorPrivate::setDbType()
 {
@@ -22,9 +24,9 @@ void MigratorPrivate::setDbType()
         dbType = Migrator::InterBase;
     } else if (db.driverName() == QLatin1String("QMYSQL")) {
         dbType = Migrator::MySQL;
-    } else if (db.driverName() == QLatin1String("MARIADB")) {
+    } else if (db.driverName() == QLatin1String("QMARIADB")) {
         dbType = Migrator::MariaDB;
-    } else if (db.driverName() == QLatin1String("ODBC")) {
+    } else if (db.driverName() == QLatin1String("QODBC")) {
         dbType = Migrator::ODBC;
     } else if (db.driverName() == QLatin1String("QOCI")) {
         dbType = Migrator::OCI;
@@ -71,6 +73,26 @@ void MigratorPrivate::setDbVersion()
             }
         } else {
             qCCritical(FIR_CORE, "Failed to execute query to determine SQLite database version: %s", qUtf8Printable(q.lastError().text()));
+        }
+    } else if (dbType == Migrator::PSQL) {
+        if (q.exec(u"SELECT version()"_s)) {
+            if (q.next()) {
+                const auto version = q.value(0).toString();
+                QRegularExpression regex{uR"-(^PostgreSQL ([1-9][0-9]*[0-9\.]*))-"_s};
+                const auto match = regex.match(version);
+                if (match.hasMatch()) {
+                    dbVersion = QVersionNumber::fromString(version);
+                    if (dbVersion.isNull()) {
+                        qCWarning(FIR_CORE) << "Can not find valid database version information in" << version;
+                    }
+                } else {
+                    qCWarning(FIR_CORE) << "Can not find valid database version information in" << version;
+                }
+            } else {
+                qCCritical(FIR_CORE) << "Can not find database version information.";
+            }
+        } else {
+            qCCritical(FIR_CORE) << "Failed to execute query to determine PostgreSQL database version:" << q.lastError();
         }
     }
 }
