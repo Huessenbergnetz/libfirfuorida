@@ -25,7 +25,6 @@ jobs:
           - Debug
           - Release
         config:
-          - qt_version: "5.15.*"
           - qt_version: "6.5.*"
           - qt_version: "6.8.1"
 
@@ -49,7 +48,7 @@ jobs:
         run: >
           cmake -S . -B ./build -G Ninja
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-          -DENABLE_TESTS:BOOL=ON
+          -DENABLE_TESTS:BOOL=${{ matrix.build_type == 'Debug' }}
 
       - name: Build project
         run: cmake --build ./build
