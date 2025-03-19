@@ -14,7 +14,6 @@
 #include "migration.h"
 
 using namespace Firfuorida;
-using namespace Qt::Literals::StringLiterals;
 
 QString ColumnPrivate::typeString() const
 {
@@ -222,26 +221,30 @@ QString ColumnPrivate::typeString() const
         switch (type) {
         case TinyInt:
         case SmallInt:
-            str = u"SMALLINT"_s;
+            str = QStringLiteral("SMALLINT");
             break;
         case SmallSerial:
-            str = u"SMALLSERIAL"_s;
+            str = QStringLiteral("SMALLSERIAL");
             break;
         case MediumInt:
         case Int:
-            str = u"INTEGER"_s;
+            str = QStringLiteral("INTEGER");
             break;
         case Serial:
-            str = u"SERIAL"_s;
+            str = QStringLiteral("SERIAL");
             break;
         case BigInt:
-            str = u"BIGINT"_s;
+            str = QStringLiteral("BIGINT");
             break;
         case BigSerial:
-            str = u"BIGSERIAL"_s;
+            str = QStringLiteral("BIGSERIAL");
             break;
         case Decimal:
+            str = QStringLiteral("DECIMAL") + QLatin1Char('(') + QString::number(precision) + QLatin1Char(',') + QString::number(scale) + QLatin1Char(')');
+            break;
         case Numeric:
+            str = QStringLiteral("NUMERIC") + QLatin1Char('(') + QString::number(precision) + QLatin1Char(',') + QString::number(scale) + QLatin1Char(')');
+            break;
         case Float:
         case Double:
         case Bit:
@@ -266,6 +269,8 @@ QString ColumnPrivate::typeString() const
         case Enum:
         case Set:
         case Boolean:
+            str = QStringLiteral("BOOLEAN");
+            break;
         case Key:
         case FulltextIndex:
         case SpatialIndex:

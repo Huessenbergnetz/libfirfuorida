@@ -14,7 +14,6 @@
 Q_LOGGING_CATEGORY(FIR_CORE, "libfirfuorida.core")
 
 using namespace Firfuorida;
-using namespace Qt::Literals::StringLiterals;
 
 void MigratorPrivate::setDbType()
 {
@@ -75,10 +74,10 @@ void MigratorPrivate::setDbVersion()
             qCCritical(FIR_CORE, "Failed to execute query to determine SQLite database version: %s", qUtf8Printable(q.lastError().text()));
         }
     } else if (dbType == Migrator::PSQL) {
-        if (q.exec(u"SELECT version()"_s)) {
+        if (q.exec(QStringLiteral("SELECT version()"))) {
             if (q.next()) {
                 const auto version = q.value(0).toString();
-                QRegularExpression regex{uR"-(^PostgreSQL ([1-9][0-9]*[0-9\.]*))-"_s};
+                QRegularExpression regex{QStringLiteral(R"-(^PostgreSQL ([1-9][0-9]*[0-9\.]*))-")};
                 const auto match = regex.match(version);
                 if (match.hasMatch()) {
                     dbVersion = QVersionNumber::fromString(version);
