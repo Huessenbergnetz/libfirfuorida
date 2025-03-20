@@ -646,10 +646,7 @@ Column::Column(Table *parent) : QObject(parent), dptr(new ColumnPrivate)
     d->q_ptr = this;
 }
 
-Column::~Column()
-{
-
-}
+Column::~Column() = default;
 
 Column* Column::autoIncrement(bool autoIncrement)
 {

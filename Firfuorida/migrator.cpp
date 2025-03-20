@@ -111,10 +111,7 @@ Migrator::Migrator(const QString &connectionName, const QString &migrationsTable
     d->migrationsTable = migrationsTable;
 }
 
-Migrator::~Migrator()
-{
-
-}
+Migrator::~Migrator() = default;
 
 bool Migrator::initDatabase()
 {
