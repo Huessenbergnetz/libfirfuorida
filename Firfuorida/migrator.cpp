@@ -151,6 +151,7 @@ bool Migrator::initDatabase()
         d->dbFeatures |= EnumType;
         d->dbFeatures |= UnsignedInteger;
         d->dbFeatures |= CharsetOnColumn;
+        d->dbFeatures |= YearType;
     }
         break;
     case MariaDB:
@@ -169,6 +170,7 @@ bool Migrator::initDatabase()
         d->dbFeatures |= EnumType;
         d->dbFeatures |= UnsignedInteger;
         d->dbFeatures |= CharsetOnColumn;
+        d->dbFeatures |= YearType;
     }
         break;
     case ODBC:

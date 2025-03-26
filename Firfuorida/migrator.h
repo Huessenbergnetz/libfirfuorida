@@ -98,7 +98,8 @@ public:
         SetType             = 1 << 12, /**< Supports SET data type. */
         EnumType            = 1 << 13, /**< Supports ENUM data type. */
         UnsignedInteger     = 1 << 14, /**< Supports unsigned integer data types. */
-        CharsetOnColumn     = 1 << 15  /**< Supports character set on columns. */
+        CharsetOnColumn     = 1 << 15, /**< Supports character set on columns. */
+        YearType            = 1 << 16  /**< Support the YEAR data type. */
     };
     Q_DECLARE_FLAGS(DatabaseFeatures, DatabaseFeature)
     Q_FLAGS(DatabaseFeatures)

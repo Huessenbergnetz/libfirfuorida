@@ -194,13 +194,13 @@ public:
      */
     Column* doubleCol(const QString &columnName, uint precision, uint scale);
     /*!
-     * \brief Creates/modifies a bit column with given \a columnName and returns a pointer to the Column object.
+     * \brief Creates/modifies a bit column with given \a columnName and \a length and returns a pointer to the Column object.
      * \par MySQL statement
      * \code{.sql}
      * columnName BIT
      * \endcode
      */
-    Column* bit(const QString &columnName);
+    Column* bit(const QString &columnName, uint length);
     /*!
      * \brief Creates/modifies a date column with given \a columnName and returns a pointer to the Column object.
      * \par MySQL statement

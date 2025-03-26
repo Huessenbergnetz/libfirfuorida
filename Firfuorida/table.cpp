@@ -355,7 +355,7 @@ Column* Table::doubleCol(const QString &columnName, uint precision, uint scale)
     return c;
 }
 
-Column* Table::bit(const QString &columnName)
+Column* Table::bit(const QString &columnName, uint length)
 {
     auto c = new Column(this);
     Q_ASSERT_X(!columnName.trimmed().isEmpty(), "bit column", "column name can not be empty");
@@ -363,6 +363,7 @@ Column* Table::bit(const QString &columnName)
     Q_D(Table);
     c->d_func()->operation = (d->operation == TablePrivate::CreateTable || d->operation == TablePrivate::CreateTableIfNotExists) ? ColumnPrivate::CreateColumn : ColumnPrivate::AddColumn;
     c->d_func()->type = ColumnPrivate::Bit;
+    c->d_func()->length = length;
     return c;
 }
 
@@ -412,13 +413,18 @@ Column* Table::time(const QString &columnName)
 
 Column* Table::year(const QString &columnName)
 {
-    auto c = new Column(this);
     Q_ASSERT_X(!columnName.trimmed().isEmpty(), "year column", "column name can not be empty");
-    c->setObjectName(columnName.trimmed());
     Q_D(Table);
-    c->d_func()->operation = (d->operation == TablePrivate::CreateTable || d->operation == TablePrivate::CreateTableIfNotExists) ? ColumnPrivate::CreateColumn : ColumnPrivate::AddColumn;
-    c->d_func()->type = ColumnPrivate::Year;
-    return c;
+    if (d->isDbFeatureAvailable(Migrator::YearType)) {
+        auto c = new Column(this);
+        c->setObjectName(columnName.trimmed());
+        c->d_func()->operation = (d->operation == TablePrivate::CreateTable || d->operation == TablePrivate::CreateTableIfNotExists) ? ColumnPrivate::CreateColumn : ColumnPrivate::AddColumn;
+        c->d_func()->type = ColumnPrivate::Year;
+        return c;
+    } else {
+        qCWarning(FIR_CORE, "%s %s does not support the YEAR data type. Falling back to INTEGER data type.", qUtf8Printable(d->dbTypeToStr()), qUtf8Printable(d->dbVersion().toString()));
+        return integer(columnName);
+    }
 }
 
 Column *Table::binary(const QString &columnName, uint length)

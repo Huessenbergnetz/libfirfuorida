@@ -51,7 +51,7 @@ QString ColumnPrivate::typeString() const
             str = QStringLiteral("DOUBLE") + QLatin1Char('(') + QString::number(precision) + QLatin1Char(',') + QString::number(scale) + QLatin1Char(')');
             break;
         case Bit:
-            str = QStringLiteral("BIT");
+            str = QStringLiteral("BIT") + QLatin1Char('(') + QString::number(length) + QLatin1Char(')');
             break;
         case Date:
             str = QStringLiteral("DATE");
@@ -246,26 +246,47 @@ QString ColumnPrivate::typeString() const
             str = QStringLiteral("NUMERIC") + QLatin1Char('(') + QString::number(precision) + QLatin1Char(',') + QString::number(scale) + QLatin1Char(')');
             break;
         case Float:
+            str = QStringLiteral("REAL");
+            break;
         case Double:
+            str = QStringLiteral("DOUBLE PRECISION");
+            break;
         case Bit:
+            str = QStringLiteral("BIT") + QLatin1Char('(') + QString::number(length) + QLatin1Char(')');
+            break;
         case Date:
+            str  = QStringLiteral("DATE");
+            break;
         case DateTime:
         case Timestamp:
+            str = QStringLiteral("TIMESTAMP");
+            break;
         case Time:
-        case Year:
+            str = QStringLiteral("TIME");
+            break;
         case Binary:
         case VarBinary:
         case TinyBlob:
         case Blob:
         case MediumBlob:
         case LongBlob:
+            str = QStringLiteral("BYTEA");
+            break;
         case Char:
+            str = QStringLiteral("CHAR") + QLatin1Char('(') + QString::number(length) + QLatin1Char(')');
+            break;
         case VarChar:
+            str = QStringLiteral("VARCHAR") + QLatin1Char('(') + QString::number(length) + QLatin1Char(')');
+            break;
         case TinyText:
         case Text:
         case MediumText:
         case LongText:
+            str = QStringLiteral("TEXT");
+            break;
         case Json:
+            str = QStringLiteral("JSON");
+            break;
         case Enum:
         case Set:
         case Boolean:
