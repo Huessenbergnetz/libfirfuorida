@@ -80,7 +80,7 @@ void MigratorPrivate::setDbVersion()
                 QRegularExpression regex{QStringLiteral(R"-(^PostgreSQL ([1-9][0-9]*[0-9\.]*))-")};
                 const auto match = regex.match(version);
                 if (match.hasMatch()) {
-                    dbVersion = QVersionNumber::fromString(version);
+                    dbVersion = QVersionNumber::fromString(match.captured(1));
                     if (dbVersion.isNull()) {
                         qCWarning(FIR_CORE) << "Can not find valid database version information in" << version;
                     }
@@ -296,6 +296,15 @@ bool Migrator::migrate()
         if (!query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS %1 ("
                                        "migration TEXT NOT NULL UNIQUE, "
                                        "applied NUMERIC DEFAULT CURRENT_TIMESTAMP)").arg(d->migrationsTable))) {
+            d->lastError = Error(query.lastError(), QStringLiteral("Can not create migrations table \"%s\":").arg(d->migrationsTable));
+            qCCritical(FIR_CORE) << d->lastError;
+            return false;
+        }
+    } else if (dbType() == Migrator::PSQL) {
+        if (!query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS %1 ("
+                                       "migration VARCHAR(255) NOT NULL,"
+                                       "applied TIMESTAMP NOT NULL DEFAULT now(),"
+                                       "UNIQUE (migration))"))) {
             d->lastError = Error(query.lastError(), QStringLiteral("Can not create migrations table \"%s\":").arg(d->migrationsTable));
             qCCritical(FIR_CORE) << d->lastError;
             return false;
