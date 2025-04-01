@@ -304,7 +304,7 @@ bool Migrator::migrate()
         if (!query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS %1 ("
                                        "migration VARCHAR(255) NOT NULL,"
                                        "applied TIMESTAMP NOT NULL DEFAULT now(),"
-                                       "UNIQUE (migration))"))) {
+                                       "UNIQUE (migration))").arg(d->migrationsTable))) {
             d->lastError = Error(query.lastError(), QStringLiteral("Can not create migrations table \"%s\":").arg(d->migrationsTable));
             qCCritical(FIR_CORE) << d->lastError;
             return false;
